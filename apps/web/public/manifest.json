@@ -1,0 +1,88 @@
+{
+  "name": "Holiday AI - One-Stop Travel Center",
+  "short_name": "Holiday AI",
+  "description": "Your complete travel booking hub combining Booking.com, Skyscanner, Agoda and more with AI budget optimization",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#3b82f6",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": ["travel", "lifestyle", "productivity"],
+  "shortcuts": [
+    {
+      "name": "AI Budget Oracle",
+      "short_name": "Budget Oracle",
+      "description": "Discover where you can travel with your budget",
+      "url": "/budget-oracle",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hotel Search",
+      "short_name": "Hotels",
+      "description": "Find best hotel rates",
+      "url": "/hotels",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Flight Deals",
+      "short_name": "Flights",
+      "description": "Compare flight prices",
+      "url": "/flights",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Activities & Tours",
+      "short_name": "Activities",
+      "description": "Book experiences and tours",
+      "url": "/activities",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Transport Hub",
+      "short_name": "Transport",
+      "description": "Multi-modal transport & ride booking",
+      "url": "/transport",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Travel Finance",
+      "short_name": "Finance",
+      "description": "Currency exchange & travel cards",
+      "url": "/finance",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot-narrow.png",
+      "sizes": "720x1280", 
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "lang": "en",
+  "scope": "/",
+  "id": "holiday-ai-travel-center"
+}
