@@ -169,6 +169,8 @@ npm run test:api         # Backend tests
 
 **EAS Config**: Bundle ID `com.holidayai.app`, EAS project ID `d75090bc-b325-4b84-86db-06188d253bfb`, profiles: development (simulator), preview (internal), production (store)
 
+**TestFlight**: https://testflight.apple.com/join/HpxejJa9
+
 ### Backend Architecture
 
 **AI Orchestrator** (`apps/api/services/ai_orchestrator.py`): The core "itinerary brain" that:
