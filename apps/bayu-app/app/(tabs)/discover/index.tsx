@@ -1,0 +1,455 @@
+import React, { useState } from 'react';
+import { View, Text, ScrollView, FlatList, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Colors } from '@/constants/colors';
+import { Typography } from '@/constants/typography';
+import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
+import { useDiscoverStore, useGamificationStore } from '@/store';
+import { Badge, Card, StarRating } from '@/components/ui';
+
+const tabs = ['Food Map', 'Marketplace', 'Safety', 'Muslim', 'Badges'] as const;
+type TabType = typeof tabs[number];
+
+const foodTags = ['all', 'tourist-friendly', 'muslim-friendly', 'viral-spot', 'local-gem'] as const;
+const agentTypes = ['all', 'dive-center', 'guide', 'tour-operator', 'transport', 'homestay', 'cultural-guide'] as const;
+const agentTypeLabels: Record<string, string> = {
+  'all': 'All',
+  'dive-center': 'Diving',
+  'guide': 'Guides',
+  'tour-operator': 'Tours',
+  'transport': 'Transport',
+  'homestay': 'Homestay',
+  'cultural-guide': 'Culture',
+};
+
+const severityColors: Record<string, string> = {
+  info: Colors.info,
+  warning: Colors.warning,
+  danger: Colors.error,
+};
+
+export default function DiscoverScreen() {
+  const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab] = useState<TabType>('Food Map');
+  const {
+    prayerTimes, restaurants, hijriDate, selectedCity, qiblaDirection,
+    foodSpots, selectedFoodTag, setFoodTag,
+    agents, selectedAgentType, setAgentType,
+    alerts, emergencyContacts,
+  } = useDiscoverStore();
+  const { badges, stats } = useGamificationStore();
+
+  const filteredFoodSpots = selectedFoodTag === 'all'
+    ? foodSpots
+    : foodSpots.filter((f) => f.tags.includes(selectedFoodTag));
+
+  const filteredAgents = selectedAgentType === 'all'
+    ? agents
+    : agents.filter((a) => a.type === selectedAgentType);
+
+  const renderFoodMap = () => (
+    <Animated.View entering={FadeInDown.duration(400)}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base }}>
+        {foodTags.map((tag) => (
+          <TouchableOpacity
+            key={tag}
+            style={[styles.chip, selectedFoodTag === tag && styles.chipActive]}
+            onPress={() => setFoodTag(tag)}
+          >
+            <Text style={[styles.chipText, selectedFoodTag === tag && styles.chipTextActive]}>
+              {tag === 'all' ? 'All' : tag.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {filteredFoodSpots.map((spot) => (
+        <Card key={spot.id} style={styles.foodCard}>
+          <View style={styles.foodRow}>
+            <Image source={{ uri: spot.image }} style={styles.foodImage} contentFit="cover" />
+            <View style={styles.foodInfo}>
+              <Text style={styles.foodName}>{spot.name}</Text>
+              <Text style={styles.foodCuisine}>{spot.cuisine} {spot.priceRange}</Text>
+              <View style={styles.foodMeta}>
+                <StarRating rating={spot.rating} size={12} />
+                <Text style={styles.foodRating}>{spot.rating}</Text>
+                {spot.isHalal && <Badge label="Halal" color="#059669" size="sm" />}
+              </View>
+              <Text style={styles.foodPeak}>Peak: {spot.peakHours}</Text>
+              <View style={styles.foodTags}>
+                {spot.mustTry.slice(0, 2).map((item, i) => (
+                  <Badge key={i} label={item} color={Colors.primary + '15'} textColor={Colors.primary} size="sm" />
+                ))}
+              </View>
+            </View>
+          </View>
+        </Card>
+      ))}
+    </Animated.View>
+  );
+
+  const renderMarketplace = () => (
+    <Animated.View entering={FadeInDown.duration(400)}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base }}>
+        {agentTypes.map((type) => (
+          <TouchableOpacity
+            key={type}
+            style={[styles.chip, selectedAgentType === type && styles.chipActive]}
+            onPress={() => setAgentType(type)}
+          >
+            <Text style={[styles.chipText, selectedAgentType === type && styles.chipTextActive]}>
+              {agentTypeLabels[type]}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {filteredAgents.map((agent) => (
+        <Card key={agent.id} style={styles.agentCard}>
+          <View style={styles.agentRow}>
+            <Image source={{ uri: agent.image }} style={styles.agentImage} contentFit="cover" />
+            <View style={styles.agentInfo}>
+              <View style={styles.agentNameRow}>
+                <Text style={styles.agentName}>{agent.name}</Text>
+                {agent.verified && <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />}
+              </View>
+              <Text style={styles.agentType}>{agent.type.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')} {agent.priceRange}</Text>
+              <View style={styles.agentMeta}>
+                <StarRating rating={agent.rating} size={12} />
+                <Text style={styles.agentRating}>{agent.rating}</Text>
+                <Text style={styles.agentLocation}>{agent.location}</Text>
+              </View>
+              <View style={styles.agentSpecialties}>
+                {agent.specialties.slice(0, 2).map((s, i) => (
+                  <Badge key={i} label={s} color={Colors.primary + '15'} textColor={Colors.primary} size="sm" />
+                ))}
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.contactBtn}
+            onPress={() => Linking.openURL(`tel:${agent.contact}`)}
+          >
+            <Ionicons name="call" size={16} color="#FFFFFF" />
+            <Text style={styles.contactBtnText}>Contact</Text>
+          </TouchableOpacity>
+        </Card>
+      ))}
+    </Animated.View>
+  );
+
+  const renderSafety = () => (
+    <Animated.View entering={FadeInDown.duration(400)}>
+      <Text style={styles.subSectionTitle}>Active Alerts</Text>
+      {alerts.filter((a) => a.active).map((alert) => (
+        <Card key={alert.id} style={{ ...styles.alertCard, borderLeftWidth: 4, borderLeftColor: severityColors[alert.severity] }}>
+          <View style={styles.alertHeader}>
+            <Ionicons
+              name={alert.type === 'tide' ? 'water' : alert.type === 'weather' ? 'cloud' : alert.type === 'trail' ? 'trail-sign' : 'paw'}
+              size={20}
+              color={severityColors[alert.severity]}
+            />
+            <Text style={[styles.alertTitle, { color: severityColors[alert.severity] }]}>{alert.title}</Text>
+          </View>
+          <Text style={styles.alertMessage}>{alert.message}</Text>
+          <Text style={styles.alertLocation}>{alert.location}</Text>
+        </Card>
+      ))}
+
+      <Text style={[styles.subSectionTitle, { marginTop: Spacing.xl }]}>Emergency Contacts</Text>
+      <Card style={{ padding: 0 }}>
+        {emergencyContacts.map((contact, i) => (
+          <TouchableOpacity
+            key={contact.id}
+            style={[styles.contactRow, i < emergencyContacts.length - 1 && styles.contactBorder]}
+            onPress={() => Linking.openURL(`tel:${contact.number}`)}
+          >
+            <View style={styles.contactLeft}>
+              <Ionicons
+                name={contact.type === 'police' ? 'shield' : contact.type === 'ambulance' ? 'medkit' : contact.type === 'hospital' ? 'medical' : contact.type === 'coast-guard' ? 'boat' : contact.type === 'fire' ? 'flame' : 'call'}
+                size={20}
+                color={Colors.primary}
+              />
+              <View>
+                <Text style={styles.contactName}>{contact.name}</Text>
+                <Text style={styles.contactNumber}>{contact.number}</Text>
+              </View>
+            </View>
+            <Ionicons name="call" size={20} color={Colors.primary} />
+          </TouchableOpacity>
+        ))}
+      </Card>
+    </Animated.View>
+  );
+
+  const renderMuslim = () => {
+    const nextPrayer = prayerTimes[3];
+    return (
+      <Animated.View entering={FadeInDown.duration(400)}>
+        <LinearGradient colors={['#7C3AED', '#A78BFA']} style={styles.nextPrayerCard}>
+          <Text style={styles.nextPrayerLabel}>Next Prayer</Text>
+          <Text style={styles.nextPrayerName}>{nextPrayer.name}</Text>
+          <Text style={styles.nextPrayerTime}>{nextPrayer.time}</Text>
+          <Text style={styles.hijriDate}>{hijriDate}</Text>
+          <Text style={styles.locationText}>{selectedCity}</Text>
+        </LinearGradient>
+
+        <Card style={styles.prayerCard}>
+          {prayerTimes.map((prayer, i) => (
+            <View key={prayer.name} style={[styles.prayerRow, i < prayerTimes.length - 1 && styles.prayerBorder]}>
+              <View style={styles.prayerLeft}>
+                <Ionicons name={prayer.icon as any} size={20} color={prayer.name === nextPrayer.name ? '#7C3AED' : Colors.textTertiary} />
+                <Text style={[styles.prayerName, prayer.name === nextPrayer.name && styles.prayerNameActive]}>{prayer.name}</Text>
+              </View>
+              <Text style={[styles.prayerTime, prayer.name === nextPrayer.name && styles.prayerTimeActive]}>{prayer.time}</Text>
+            </View>
+          ))}
+        </Card>
+
+        <Card style={styles.qiblaCard}>
+          <View style={styles.qiblaContent}>
+            <View style={styles.qiblaCompass}>
+              <Ionicons name="compass" size={48} color="#7C3AED" />
+            </View>
+            <View>
+              <Text style={styles.qiblaTitle}>Qibla Direction</Text>
+              <Text style={styles.qiblaValue}>{qiblaDirection}° NW from {selectedCity}</Text>
+            </View>
+          </View>
+        </Card>
+
+        <Text style={[styles.subSectionTitle, { marginTop: Spacing.md }]}>Halal Restaurants</Text>
+        {restaurants.map((restaurant) => (
+          <Card key={restaurant.id} style={styles.restaurantCard}>
+            <View style={styles.restaurantRow}>
+              <Image source={{ uri: restaurant.image }} style={styles.restaurantImage} contentFit="cover" />
+              <View style={styles.restaurantInfo}>
+                <Text style={styles.restaurantName}>{restaurant.name}</Text>
+                <Text style={styles.restaurantCuisine}>{restaurant.cuisine}</Text>
+                <View style={styles.restaurantMeta}>
+                  <StarRating rating={restaurant.rating} size={12} />
+                  <Text style={styles.restaurantRating}>{restaurant.rating}</Text>
+                  <Text style={styles.metaDot}>-</Text>
+                  <Text style={styles.restaurantDistance}>{restaurant.distance}</Text>
+                </View>
+                <Badge label={restaurant.certification} color="#7C3AED" size="sm" style={{ marginTop: Spacing.xs }} />
+              </View>
+            </View>
+          </Card>
+        ))}
+      </Animated.View>
+    );
+  };
+
+  const renderBadges = () => {
+    const earnedBadges = badges.filter((b) => b.earned);
+    const unearnedBadges = badges.filter((b) => !b.earned);
+    return (
+      <Animated.View entering={FadeInDown.duration(400)}>
+        <LinearGradient colors={['#0891b2', '#06B6D4']} style={styles.passCard}>
+          <Text style={styles.passTitle}>Sabah Travel Pass</Text>
+          <Text style={styles.passLevel}>Level {stats.level}</Text>
+          <View style={styles.passProgressBg}>
+            <View style={[styles.passProgressFill, { width: `${(stats.points / stats.nextLevelPoints) * 100}%` }]} />
+          </View>
+          <Text style={styles.passPoints}>{stats.points.toLocaleString()} / {stats.nextLevelPoints.toLocaleString()} pts</Text>
+          <View style={styles.passStats}>
+            <View style={styles.passStat}>
+              <Text style={styles.passStatValue}>{stats.districtsVisited}</Text>
+              <Text style={styles.passStatLabel}>Districts</Text>
+            </View>
+            <View style={styles.passStat}>
+              <Text style={styles.passStatValue}>{stats.badgesEarned}</Text>
+              <Text style={styles.passStatLabel}>Badges</Text>
+            </View>
+            <View style={styles.passStat}>
+              <Text style={styles.passStatValue}>{stats.tripsCompleted}</Text>
+              <Text style={styles.passStatLabel}>Trips</Text>
+            </View>
+          </View>
+        </LinearGradient>
+
+        <Text style={styles.subSectionTitle}>Earned ({earnedBadges.length})</Text>
+        <View style={styles.badgeGrid}>
+          {earnedBadges.map((badge) => (
+            <View key={badge.id} style={styles.badgeItem}>
+              <View style={[styles.badgeIcon, { backgroundColor: Colors.primary + '15' }]}>
+                <Ionicons name={badge.icon as any} size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.badgeName} numberOfLines={1}>{badge.name}</Text>
+              <Text style={styles.badgeDistrict} numberOfLines={1}>{badge.district}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={[styles.subSectionTitle, { marginTop: Spacing.lg }]}>Locked ({unearnedBadges.length})</Text>
+        <View style={styles.badgeGrid}>
+          {unearnedBadges.map((badge) => (
+            <View key={badge.id} style={[styles.badgeItem, { opacity: 0.5 }]}>
+              <View style={[styles.badgeIcon, { backgroundColor: Colors.surfaceSecondary }]}>
+                <Ionicons name="lock-closed" size={24} color={Colors.textTertiary} />
+              </View>
+              <Text style={styles.badgeName} numberOfLines={1}>{badge.name}</Text>
+              <Text style={styles.badgeReq} numberOfLines={2}>{badge.requirement}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={[styles.subSectionTitle, { marginTop: Spacing.lg }]}>Districts Visited</Text>
+        <Card>
+          {stats.allDistricts.map((district, i) => {
+            const visited = stats.visitedDistricts.includes(district);
+            return (
+              <View key={district} style={[styles.districtRow, i < stats.allDistricts.length - 1 && styles.prayerBorder]}>
+                <View style={styles.districtLeft}>
+                  <Ionicons name={visited ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={visited ? Colors.primary : Colors.textTertiary} />
+                  <Text style={[styles.districtName, visited && { color: Colors.text, fontFamily: Typography.fonts.bodySemiBold }]}>{district}</Text>
+                </View>
+                {visited && <Badge label="Visited" color={Colors.primary} size="sm" />}
+              </View>
+            );
+          })}
+        </Card>
+      </Animated.View>
+    );
+  };
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Discover Sabah</Text>
+        <Text style={styles.headerSubtitle}>Food, guides, safety & more</Text>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroll} contentContainerStyle={styles.tabContainer}>
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.tab, activeTab === tab && styles.tabActive]}
+            onPress={() => setActiveTab(tab)}
+          >
+            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {activeTab === 'Food Map' && renderFoodMap()}
+        {activeTab === 'Marketplace' && renderMarketplace()}
+        {activeTab === 'Safety' && renderSafety()}
+        {activeTab === 'Muslim' && renderMuslim()}
+        {activeTab === 'Badges' && renderBadges()}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.md },
+  headerTitle: { fontSize: Typography.sizes.xl, fontFamily: Typography.fonts.headingBold, color: Colors.text },
+  headerSubtitle: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
+  tabScroll: { maxHeight: 44, marginBottom: Spacing.sm },
+  tabContainer: { paddingHorizontal: Spacing.base, gap: Spacing.xs },
+  tab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, backgroundColor: Colors.surface },
+  tabActive: { backgroundColor: Colors.primary },
+  tabText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textTertiary },
+  tabTextActive: { color: '#FFFFFF' },
+  content: { paddingHorizontal: Spacing.base, paddingBottom: 40 },
+  subSectionTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.md, marginTop: Spacing.sm },
+
+  chipScroll: { marginBottom: Spacing.md },
+  chip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: BorderRadius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  chipText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textSecondary },
+  chipTextActive: { color: '#FFFFFF' },
+  foodCard: { marginBottom: Spacing.md },
+  foodRow: { flexDirection: 'row', gap: Spacing.md },
+  foodImage: { width: 80, height: 80, borderRadius: BorderRadius.md },
+  foodInfo: { flex: 1 },
+  foodName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  foodCuisine: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
+  foodMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.xs },
+  foodRating: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text, marginRight: 4 },
+  foodPeak: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: Colors.textTertiary, marginTop: 2 },
+  foodTags: { flexDirection: 'row', gap: Spacing.xs, marginTop: Spacing.xs },
+
+  agentCard: { marginBottom: Spacing.md },
+  agentRow: { flexDirection: 'row', gap: Spacing.md },
+  agentImage: { width: 70, height: 70, borderRadius: BorderRadius.md },
+  agentInfo: { flex: 1 },
+  agentNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  agentName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  agentType: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
+  agentMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.xs },
+  agentRating: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  agentLocation: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: Colors.textTertiary, marginLeft: 4 },
+  agentSpecialties: { flexDirection: 'row', gap: Spacing.xs, marginTop: Spacing.xs, flexWrap: 'wrap' },
+  contactBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.xs, backgroundColor: Colors.primary, borderRadius: BorderRadius.md, paddingVertical: Spacing.sm, marginTop: Spacing.md },
+  contactBtnText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodySemiBold, color: '#FFFFFF' },
+
+  alertCard: { marginBottom: Spacing.md },
+  alertHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.xs },
+  alertTitle: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold },
+  alertMessage: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, lineHeight: 20 },
+  alertLocation: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodyMedium, color: Colors.textTertiary, marginTop: Spacing.xs },
+  contactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.md, paddingHorizontal: Spacing.base },
+  contactBorder: { borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  contactLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  contactName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodyMedium, color: Colors.text },
+  contactNumber: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary },
+
+  nextPrayerCard: { borderRadius: BorderRadius.xl, padding: Spacing.xl, alignItems: 'center', marginBottom: Spacing.md },
+  nextPrayerLabel: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: 'rgba(255,255,255,0.8)' },
+  nextPrayerName: { fontSize: Typography.sizes['2xl'], fontFamily: Typography.fonts.headingBold, color: '#FFFFFF', marginTop: Spacing.xs },
+  nextPrayerTime: { fontSize: Typography.sizes['3xl'], fontFamily: Typography.fonts.headingBold, color: '#FFFFFF' },
+  hijriDate: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: 'rgba(255,255,255,0.7)', marginTop: Spacing.sm },
+  locationText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  prayerCard: { marginBottom: Spacing.md },
+  prayerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.md },
+  prayerBorder: { borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  prayerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  prayerName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodyMedium, color: Colors.text },
+  prayerNameActive: { color: '#7C3AED', fontFamily: Typography.fonts.bodySemiBold },
+  prayerTime: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  prayerTimeActive: { color: '#7C3AED' },
+  qiblaCard: { marginBottom: Spacing.md },
+  qiblaContent: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
+  qiblaCompass: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#7C3AED15', alignItems: 'center', justifyContent: 'center' },
+  qiblaTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text },
+  qiblaValue: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
+  restaurantCard: { marginBottom: Spacing.md },
+  restaurantRow: { flexDirection: 'row', gap: Spacing.md },
+  restaurantImage: { width: 80, height: 80, borderRadius: BorderRadius.md },
+  restaurantInfo: { flex: 1 },
+  restaurantName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  restaurantCuisine: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
+  restaurantMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.xs },
+  restaurantRating: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  metaDot: { fontSize: Typography.sizes.xs, color: Colors.textTertiary },
+  restaurantDistance: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: Colors.textSecondary },
+
+  passCard: { borderRadius: BorderRadius.xl, padding: Spacing.xl, alignItems: 'center', marginBottom: Spacing.lg },
+  passTitle: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: 'rgba(255,255,255,0.8)' },
+  passLevel: { fontSize: Typography.sizes['2xl'], fontFamily: Typography.fonts.headingBold, color: '#FFFFFF', marginTop: Spacing.xs },
+  passProgressBg: { width: '80%', height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.3)', marginTop: Spacing.md },
+  passProgressFill: { height: '100%', borderRadius: 4, backgroundColor: '#FFFFFF' },
+  passPoints: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: 'rgba(255,255,255,0.8)', marginTop: Spacing.xs },
+  passStats: { flexDirection: 'row', gap: Spacing['2xl'], marginTop: Spacing.lg },
+  passStat: { alignItems: 'center' },
+  passStatValue: { fontSize: Typography.sizes.lg, fontFamily: Typography.fonts.headingBold, color: '#FFFFFF' },
+  passStatLabel: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: 'rgba(255,255,255,0.8)' },
+  badgeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
+  badgeItem: { width: '28%', alignItems: 'center', marginBottom: Spacing.sm },
+  badgeIcon: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.xs },
+  badgeName: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text, textAlign: 'center' },
+  badgeDistrict: { fontSize: 10, fontFamily: Typography.fonts.body, color: Colors.textTertiary, textAlign: 'center' },
+  badgeReq: { fontSize: 10, fontFamily: Typography.fonts.body, color: Colors.textTertiary, textAlign: 'center' },
+  districtRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.md },
+  districtLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  districtName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.body, color: Colors.textTertiary },
+});
