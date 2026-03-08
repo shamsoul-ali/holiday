@@ -22,8 +22,8 @@ export const Badge: React.FC<BadgeProps> = ({ label, color = Colors.primary, tex
 
 const styles = StyleSheet.create({
   base: { borderRadius: BorderRadius.full, alignSelf: 'flex-start' },
-  sm: { paddingHorizontal: Spacing.sm, paddingVertical: 2 },
-  md: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs },
+  sm: { paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs },
+  md: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm },
   text: { fontFamily: Typography.fonts.bodySemiBold },
   text_sm: { fontSize: Typography.sizes.xs },
   text_md: { fontSize: Typography.sizes.sm },

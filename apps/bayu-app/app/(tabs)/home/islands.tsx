@@ -42,33 +42,35 @@ export default function IslandsScreen() {
 
       <Text style={styles.subtitle}>{filteredIslands.length} islands across {islandRegions.length} regions</Text>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ paddingHorizontal: Spacing.base, gap: Spacing.xs }}>
-        {['All', ...islandRegions].map((region) => (
-          <TouchableOpacity
-            key={region}
-            style={[styles.chip, selectedRegion === region && styles.chipActive]}
-            onPress={() => setSelectedRegion(region)}
-          >
-            <Text style={[styles.chipText, selectedRegion === region && styles.chipTextActive]}>
-              {region === 'All' ? 'All Regions' : region.split(' (')[0]}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ paddingHorizontal: Spacing.base, gap: Spacing.xs }}>
+          {['All', ...islandRegions].map((region) => (
+            <TouchableOpacity
+              key={region}
+              style={[styles.chip, selectedRegion === region && styles.chipActive]}
+              onPress={() => setSelectedRegion(region)}
+            >
+              <Text style={[styles.chipText, selectedRegion === region && styles.chipTextActive]}>
+                {region === 'All' ? 'All Regions' : region.split(' (')[0]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ paddingHorizontal: Spacing.base, gap: Spacing.xs }}>
-        {['All', ...islandActivities].map((activity) => (
-          <TouchableOpacity
-            key={activity}
-            style={[styles.chip, selectedActivity === activity && styles.chipActive]}
-            onPress={() => setSelectedActivity(activity)}
-          >
-            <Text style={[styles.chipText, selectedActivity === activity && styles.chipTextActive]}>
-              {activity === 'All' ? 'All Activities' : activity}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={{ paddingHorizontal: Spacing.base, gap: Spacing.xs }}>
+          {['All', ...islandActivities].map((activity) => (
+            <TouchableOpacity
+              key={activity}
+              style={[styles.chip, selectedActivity === activity && styles.chipActive]}
+              onPress={() => setSelectedActivity(activity)}
+            >
+              <Text style={[styles.chipText, selectedActivity === activity && styles.chipTextActive]}>
+                {activity === 'All' ? 'All Activities' : activity}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <FlatList
         data={filteredIslands}
@@ -96,12 +98,12 @@ export default function IslandsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   subtitle: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, paddingHorizontal: Spacing.base, marginBottom: Spacing.sm },
-  filterRow: { maxHeight: 40, marginBottom: Spacing.sm },
-  chip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: BorderRadius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  filterRow: { marginBottom: Spacing.sm },
+  chip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   chipText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textSecondary },
   chipTextActive: { color: '#FFFFFF' },
-  list: { padding: Spacing.base, paddingBottom: 40 },
+  list: { padding: Spacing.base, paddingBottom: 100 },
   empty: { alignItems: 'center', paddingVertical: Spacing['3xl'] },
   emptyText: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.body, color: Colors.textTertiary },
 });

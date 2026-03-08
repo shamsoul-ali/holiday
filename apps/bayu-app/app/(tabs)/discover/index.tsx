@@ -55,7 +55,7 @@ export default function DiscoverScreen() {
 
   const renderFoodMap = () => (
     <Animated.View entering={FadeInDown.duration(400)}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base, paddingVertical: Spacing.xs }}>
         {foodTags.map((tag) => (
           <TouchableOpacity
             key={tag}
@@ -96,7 +96,7 @@ export default function DiscoverScreen() {
 
   const renderMarketplace = () => (
     <Animated.View entering={FadeInDown.duration(400)}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base, paddingVertical: Spacing.xs }}>
         {agentTypes.map((type) => (
           <TouchableOpacity
             key={type}
@@ -192,7 +192,7 @@ export default function DiscoverScreen() {
     const nextPrayer = prayerTimes[3];
     return (
       <Animated.View entering={FadeInDown.duration(400)}>
-        <LinearGradient colors={['#7C3AED', '#A78BFA']} style={styles.nextPrayerCard}>
+        <LinearGradient colors={[...Colors.gradients.spiritual]} style={styles.nextPrayerCard}>
           <Text style={styles.nextPrayerLabel}>Next Prayer</Text>
           <Text style={styles.nextPrayerName}>{nextPrayer.name}</Text>
           <Text style={styles.nextPrayerTime}>{nextPrayer.time}</Text>
@@ -204,7 +204,7 @@ export default function DiscoverScreen() {
           {prayerTimes.map((prayer, i) => (
             <View key={prayer.name} style={[styles.prayerRow, i < prayerTimes.length - 1 && styles.prayerBorder]}>
               <View style={styles.prayerLeft}>
-                <Ionicons name={prayer.icon as any} size={20} color={prayer.name === nextPrayer.name ? '#7C3AED' : Colors.textTertiary} />
+                <Ionicons name={prayer.icon as any} size={20} color={prayer.name === nextPrayer.name ? Colors.category.cultural : Colors.textTertiary} />
                 <Text style={[styles.prayerName, prayer.name === nextPrayer.name && styles.prayerNameActive]}>{prayer.name}</Text>
               </View>
               <Text style={[styles.prayerTime, prayer.name === nextPrayer.name && styles.prayerTimeActive]}>{prayer.time}</Text>
@@ -215,7 +215,7 @@ export default function DiscoverScreen() {
         <Card style={styles.qiblaCard}>
           <View style={styles.qiblaContent}>
             <View style={styles.qiblaCompass}>
-              <Ionicons name="compass" size={48} color="#7C3AED" />
+              <Ionicons name="compass" size={48} color={Colors.category.cultural} />
             </View>
             <View>
               <Text style={styles.qiblaTitle}>Qibla Direction</Text>
@@ -238,7 +238,7 @@ export default function DiscoverScreen() {
                   <Text style={styles.metaDot}>-</Text>
                   <Text style={styles.restaurantDistance}>{restaurant.distance}</Text>
                 </View>
-                <Badge label={restaurant.certification} color="#7C3AED" size="sm" style={{ marginTop: Spacing.xs }} />
+                <Badge label={restaurant.certification} color={Colors.category.cultural} size="sm" style={{ marginTop: Spacing.xs }} />
               </View>
             </View>
           </Card>
@@ -257,7 +257,7 @@ export default function DiscoverScreen() {
 
   const renderEvents = () => (
     <Animated.View entering={FadeInDown.duration(400)}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base, paddingVertical: Spacing.xs }}>
         <TouchableOpacity
           style={[styles.chip, eventMonthFilter === null && styles.chipActive]}
           onPress={() => setEventMonthFilter(null)}
@@ -308,7 +308,7 @@ export default function DiscoverScreen() {
     const unearnedBadges = badges.filter((b) => !b.earned);
     return (
       <Animated.View entering={FadeInDown.duration(400)}>
-        <LinearGradient colors={['#0891b2', '#06B6D4']} style={styles.passCard}>
+        <LinearGradient colors={[...Colors.gradients.sabahSky]} style={styles.passCard}>
           <Text style={styles.passTitle}>Sabah Travel Pass</Text>
           <Text style={styles.passLevel}>Level {stats.level}</Text>
           <View style={styles.passProgressBg}>
@@ -383,17 +383,19 @@ export default function DiscoverScreen() {
         <Text style={styles.headerSubtitle}>Food, guides, safety & more</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroll} contentContainerStyle={styles.tabContainer}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.tab, activeTab === tab && styles.tabActive]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabScroll} contentContainerStyle={styles.tabContainer}>
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.tabActive]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {activeTab === 'Food Map' && renderFoodMap()}
@@ -413,17 +415,17 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.md },
   headerTitle: { fontSize: Typography.sizes.xl, fontFamily: Typography.fonts.headingBold, color: Colors.text },
   headerSubtitle: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
-  tabScroll: { maxHeight: 44, marginBottom: Spacing.sm },
-  tabContainer: { paddingHorizontal: Spacing.base, gap: Spacing.xs },
+  tabScroll: { marginBottom: Spacing.sm },
+  tabContainer: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.xs, gap: Spacing.xs },
   tab: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, backgroundColor: Colors.surface },
   tabActive: { backgroundColor: Colors.primary },
   tabText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textTertiary },
   tabTextActive: { color: '#FFFFFF' },
-  content: { paddingHorizontal: Spacing.base, paddingBottom: 40 },
+  content: { paddingHorizontal: Spacing.base, paddingBottom: 100 },
   subSectionTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.md, marginTop: Spacing.sm },
 
-  chipScroll: { marginBottom: Spacing.md },
-  chip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.xs, borderRadius: BorderRadius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  chipScroll: { flexGrow: 0, marginBottom: Spacing.md, overflow: 'visible' },
+  chip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   chipText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textSecondary },
   chipTextActive: { color: '#FFFFFF' },
@@ -474,12 +476,12 @@ const styles = StyleSheet.create({
   prayerBorder: { borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
   prayerLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   prayerName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodyMedium, color: Colors.text },
-  prayerNameActive: { color: '#7C3AED', fontFamily: Typography.fonts.bodySemiBold },
+  prayerNameActive: { color: Colors.category.cultural, fontFamily: Typography.fonts.bodySemiBold },
   prayerTime: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
-  prayerTimeActive: { color: '#7C3AED' },
+  prayerTimeActive: { color: Colors.category.cultural },
   qiblaCard: { marginBottom: Spacing.md },
   qiblaContent: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
-  qiblaCompass: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#7C3AED15', alignItems: 'center', justifyContent: 'center' },
+  qiblaCompass: { width: 72, height: 72, borderRadius: 36, backgroundColor: Colors.category.cultural + '15', alignItems: 'center', justifyContent: 'center' },
   qiblaTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text },
   qiblaValue: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
   restaurantCard: { marginBottom: Spacing.md },
