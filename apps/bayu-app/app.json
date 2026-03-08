@@ -9,7 +9,9 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#0891b2"
+      "image": "./assets/images/splash-icon.png",
+      "imageResizeMode": "contain",
+      "backgroundColor": "#096DBB"
     },
     "ios": {
       "supportsTablet": true,
@@ -20,8 +22,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#0891b2"
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#096DBB"
       },
       "package": "com.bayuai.sabah"
     },
