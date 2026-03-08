@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInRight } from 'react-native-reanimated';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
@@ -33,100 +34,72 @@ const travelMonths = [
   { label: 'Dec 2026', value: '2026-12-15' },
 ];
 
+const durationToNights: Record<DurationPreset, number> = {
+  '2D1N': 1, '3D2N': 2, '4D3N': 3, '5D4N': 4, '7D6N': 6,
+};
+
+const addDays = (date: Date, days: number): Date => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+const formatDateDisplay = (date: Date): string => {
+  const d = date.getDate().toString().padStart(2, '0');
+  const m = (date.getMonth() + 1).toString().padStart(2, '0');
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+};
+
+const toISODate = (date: Date): string => {
+  const y = date.getFullYear();
+  const m = (date.getMonth() + 1).toString().padStart(2, '0');
+  const d = date.getDate().toString().padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+const reasonIcons: Record<string, string> = {
+  event: 'calendar',
+  season: 'sunny',
+  promo: 'megaphone',
+};
+
+const getReasonIcon = (reason: string): string => {
+  if (reason.includes('campaign') || reason.includes('Tourism')) return 'megaphone';
+  if (reason.includes('season') || reason.includes('Peak') || reason.includes('Best time')) return 'sunny';
+  return 'calendar';
+};
+
 export default function ExploreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { wizard, setWizardStep, updateWizard } = useTripStore();
+  const { wizard, setWizardStep, updateWizard, suggestDestination } = useTripStore();
+  const [showExactDates, setShowExactDates] = useState(false);
+  const [customStartDate, setCustomStartDate] = useState<Date>(new Date(2026, 3, 15));
+  const [showStartPicker, setShowStartPicker] = useState(Platform.OS === 'ios');
+
+  const customEndDate = useMemo(() => {
+    const nights = durationToNights[wizard.duration] || 2;
+    return addDays(customStartDate, nights);
+  }, [customStartDate, wizard.duration]);
 
   const handleGenerate = async () => {
     router.push('/(tabs)/explore/loading');
   };
 
+  const handleSuggestDestination = () => {
+    hapticSelection();
+    suggestDestination();
+    setWizardStep(3);
+  };
+
   const renderStep = () => {
     switch (wizard.step) {
+      // Step 1: Budget (was step 3)
       case 1:
         return (
           <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Where do you want to go?</Text>
-            <Text style={styles.stepSubtitle}>Choose a destination for your trip</Text>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {sabahDestinations.slice(0, 8).map((dest) => (
-                <TouchableOpacity
-                  key={dest.id}
-                  style={[styles.destOption, wizard.destination === dest.name && styles.destSelected]}
-                  onPress={() => { hapticSelection(); updateWizard({ destination: dest.name }); }}
-                >
-                  <View style={styles.destInfo}>
-                    <Text style={styles.destName}>{dest.name}, {dest.country}</Text>
-                    <Text style={styles.destDesc}>{dest.description}</Text>
-                  </View>
-                  {wizard.destination === dest.name && (
-                    <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </Animated.View>
-        );
-
-      case 2:
-        return (
-          <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
-            <Text style={styles.stepTitle}>When & how long?</Text>
-            <Text style={styles.stepSubtitle}>Set your trip duration and travel dates</Text>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={styles.fieldLabel}>Duration</Text>
-              <View style={styles.durationRow}>
-                {durationPresets.map((dur) => (
-                  <TouchableOpacity
-                    key={dur}
-                    style={[styles.durationChip, wizard.duration === dur && styles.durationChipActive]}
-                    onPress={() => { hapticSelection(); updateWizard({ duration: dur }); }}
-                  >
-                    <Text style={[styles.durationChipText, wizard.duration === dur && styles.durationChipTextActive]}>{dur}</Text>
-                    <Text style={[styles.durationChipSub, wizard.duration === dur && styles.durationChipSubActive]}>
-                      {formatDurationLabel(dur)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={[styles.fieldLabel, { marginTop: Spacing.xl }]}>Travel Month</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthScroll} contentContainerStyle={{ gap: Spacing.xs }}>
-                {travelMonths.map((m) => (
-                  <TouchableOpacity
-                    key={m.value}
-                    style={[styles.monthChip, wizard.startDate === m.value && styles.monthChipActive]}
-                    onPress={() => { hapticSelection(); updateWizard({ startDate: m.value }); }}
-                  >
-                    <Text style={[styles.monthChipText, wizard.startDate === m.value && styles.monthChipTextActive]}>{m.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-
-              <Text style={[styles.fieldLabel, { marginTop: Spacing.xl }]}>Departure City</Text>
-              {DEPARTURE_CITIES.map((city) => (
-                <TouchableOpacity
-                  key={city}
-                  style={[styles.cityOption, wizard.departureCity === city && styles.citySelected]}
-                  onPress={() => { hapticSelection(); updateWizard({ departureCity: city }); }}
-                >
-                  <Ionicons name="airplane-outline" size={18} color={wizard.departureCity === city ? Colors.primary : Colors.textTertiary} />
-                  <Text style={[styles.cityText, wizard.departureCity === city && styles.cityTextActive]}>{city}</Text>
-                  {wizard.departureCity === city && (
-                    <Ionicons name="checkmark-circle" size={20} color={Colors.primary} style={{ marginLeft: 'auto' }} />
-                  )}
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </Animated.View>
-        );
-
-      case 3:
-        return (
-          <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Set your budget</Text>
+            <Text style={styles.stepTitle}>What's your budget?</Text>
             <Text style={styles.stepSubtitle}>Per person budget in MYR</Text>
 
             <Card style={styles.budgetCard}>
@@ -171,6 +144,212 @@ export default function ExploreScreen() {
           </Animated.View>
         );
 
+      // Step 2: When & how long (unchanged content, with new exact dates + suggest CTA)
+      case 2:
+        return (
+          <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
+            <Text style={styles.stepTitle}>When & how long?</Text>
+            <Text style={styles.stepSubtitle}>Set your trip duration and travel dates</Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+              <Text style={styles.fieldLabel}>Duration</Text>
+              <View style={styles.durationRow}>
+                {durationPresets.map((dur) => (
+                  <TouchableOpacity
+                    key={dur}
+                    style={[styles.durationChip, wizard.duration === dur && styles.durationChipActive]}
+                    onPress={() => { hapticSelection(); updateWizard({ duration: dur }); }}
+                  >
+                    <Text style={[styles.durationChipText, wizard.duration === dur && styles.durationChipTextActive]}>{dur}</Text>
+                    <Text style={[styles.durationChipSub, wizard.duration === dur && styles.durationChipSubActive]}>
+                      {formatDurationLabel(dur)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.fieldLabel, { marginTop: Spacing.xl }]}>Travel Month</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthScroll} contentContainerStyle={{ gap: Spacing.xs }}>
+                {travelMonths.map((m) => (
+                  <TouchableOpacity
+                    key={m.value}
+                    style={[styles.monthChip, wizard.startDate === m.value && styles.monthChipActive]}
+                    onPress={() => { hapticSelection(); updateWizard({ startDate: m.value }); }}
+                  >
+                    <Text style={[styles.monthChipText, wizard.startDate === m.value && styles.monthChipTextActive]}>{m.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* Exact dates checkbox */}
+              <TouchableOpacity
+                style={styles.exactDateRow}
+                onPress={() => {
+                  const next = !showExactDates;
+                  setShowExactDates(next);
+                  if (next) {
+                    // When toggling on, sync wizard with custom date
+                    updateWizard({ startDate: toISODate(customStartDate), exactDate: toISODate(customStartDate) });
+                    if (Platform.OS === 'android') setShowStartPicker(true);
+                  }
+                }}
+              >
+                <Ionicons
+                  name={showExactDates ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color={showExactDates ? Colors.primary : Colors.textTertiary}
+                />
+                <Text style={styles.exactDateLabel}>I have specific dates</Text>
+              </TouchableOpacity>
+
+              {showExactDates && (
+                <View style={styles.exactDateSection}>
+                  {/* Start date */}
+                  <View style={styles.datePickerRow}>
+                    <View style={styles.datePickerLabel}>
+                      <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
+                      <Text style={styles.datePickerLabelText}>Start Date</Text>
+                    </View>
+                    {Platform.OS === 'android' && (
+                      <TouchableOpacity style={styles.datePickerButton} onPress={() => setShowStartPicker(true)}>
+                        <Text style={styles.datePickerButtonText}>{formatDateDisplay(customStartDate)}</Text>
+                        <Ionicons name="chevron-down" size={16} color={Colors.primary} />
+                      </TouchableOpacity>
+                    )}
+                    {(Platform.OS === 'ios' || showStartPicker) && (
+                      <DateTimePicker
+                        value={customStartDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'compact' : 'default'}
+                        minimumDate={new Date()}
+                        onChange={(event: DateTimePickerEvent, date?: Date) => {
+                          if (Platform.OS === 'android') setShowStartPicker(false);
+                          if (date) {
+                            setCustomStartDate(date);
+                            updateWizard({ startDate: toISODate(date), exactDate: toISODate(date) });
+                          }
+                        }}
+                        style={Platform.OS === 'ios' ? { marginLeft: 'auto' } : undefined}
+                        accentColor={Colors.primary}
+                      />
+                    )}
+                  </View>
+
+                  {/* End date — auto-calculated, shown as read-only */}
+                  <View style={styles.datePickerRow}>
+                    <View style={styles.datePickerLabel}>
+                      <Ionicons name="calendar-outline" size={16} color={Colors.textTertiary} />
+                      <Text style={styles.datePickerLabelText}>End Date</Text>
+                    </View>
+                    <View style={styles.endDateDisplay}>
+                      <Text style={styles.endDateText}>{formatDateDisplay(customEndDate)}</Text>
+                      <Text style={styles.endDateHint}>({wizard.duration})</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              <Text style={[styles.fieldLabel, { marginTop: Spacing.xl }]}>Departure City</Text>
+              {DEPARTURE_CITIES.map((city) => (
+                <TouchableOpacity
+                  key={city}
+                  style={[styles.cityOption, wizard.departureCity === city && styles.citySelected]}
+                  onPress={() => { hapticSelection(); updateWizard({ departureCity: city }); }}
+                >
+                  <Ionicons name="airplane-outline" size={18} color={wizard.departureCity === city ? Colors.primary : Colors.textTertiary} />
+                  <Text style={[styles.cityText, wizard.departureCity === city && styles.cityTextActive]}>{city}</Text>
+                  {wizard.departureCity === city && (
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.primary} style={{ marginLeft: 'auto' }} />
+                  )}
+                </TouchableOpacity>
+              ))}
+
+              {/* Suggest destination CTA */}
+              <TouchableOpacity style={styles.suggestCTA} onPress={handleSuggestDestination}>
+                <Ionicons name="sparkles" size={20} color="#FFFFFF" />
+                <Text style={styles.suggestCTAText}>Let Bayu suggest your destination</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </Animated.View>
+        );
+
+      // Step 3: Where to? (was step 1, now with AI suggestion card at top)
+      case 3:
+        return (
+          <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
+            <Text style={styles.stepTitle}>Where do you want to go?</Text>
+            <Text style={styles.stepSubtitle}>Choose a destination for your trip</Text>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+              {/* AI Suggestion Card */}
+              <TouchableOpacity
+                style={[styles.aiSuggestionCard, wizard.useBayuSuggestion && styles.aiSuggestionCardActive]}
+                onPress={() => {
+                  hapticSelection();
+                  if (!wizard.useBayuSuggestion || !wizard.destination) {
+                    suggestDestination();
+                  } else {
+                    updateWizard({ useBayuSuggestion: true });
+                  }
+                }}
+              >
+                <View style={styles.aiSuggestionHeader}>
+                  <View style={styles.aiSuggestionIcon}>
+                    <Ionicons name="sparkles" size={18} color={Colors.primary} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.aiSuggestionTitle}>Let Bayu create for you</Text>
+                    <Text style={styles.aiSuggestionSubtitle}>AI-curated destination based on your budget & dates</Text>
+                  </View>
+                  {wizard.useBayuSuggestion && (
+                    <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
+                  )}
+                </View>
+
+                {wizard.useBayuSuggestion && wizard.destination ? (
+                  <View style={styles.aiSuggestionBody}>
+                    <Text style={styles.aiSuggestionDest}>{wizard.destination}</Text>
+                    {wizard.suggestedReasons && wizard.suggestedReasons.length > 0 && (
+                      <View style={styles.reasonChips}>
+                        {wizard.suggestedReasons.map((reason, i) => (
+                          <View key={i} style={styles.reasonChip}>
+                            <Ionicons name={getReasonIcon(reason) as any} size={12} color={Colors.primary} />
+                            <Text style={styles.reasonChipText}>{reason}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                ) : null}
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.orDivider}>
+                <View style={styles.orLine} />
+                <Text style={styles.orText}>or choose manually</Text>
+                <View style={styles.orLine} />
+              </View>
+
+              {/* Manual destination list */}
+              {sabahDestinations.slice(0, 8).map((dest) => (
+                <TouchableOpacity
+                  key={dest.id}
+                  style={[styles.destOption, !wizard.useBayuSuggestion && wizard.destination === dest.name && styles.destSelected]}
+                  onPress={() => { hapticSelection(); updateWizard({ destination: dest.name, useBayuSuggestion: false, suggestedReasons: [] }); }}
+                >
+                  <View style={styles.destInfo}>
+                    <Text style={styles.destName}>{dest.name}, {dest.country}</Text>
+                    <Text style={styles.destDesc}>{dest.description}</Text>
+                  </View>
+                  {!wizard.useBayuSuggestion && wizard.destination === dest.name && (
+                    <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        );
+
+      // Step 4: Interests & travel style (unchanged)
       case 4:
         return (
           <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
@@ -216,6 +395,7 @@ export default function ExploreScreen() {
           </Animated.View>
         );
 
+      // Step 5: Review (with Bayu suggestion indicator)
       case 5:
         return (
           <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
@@ -224,7 +404,15 @@ export default function ExploreScreen() {
               <View style={styles.reviewRow}>
                 <Ionicons name="location" size={20} color={Colors.primary} />
                 <Text style={styles.reviewLabel}>Destination</Text>
-                <Text style={styles.reviewValue}>{wizard.destination || 'Not selected'}</Text>
+                <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                  <Text style={styles.reviewValue}>{wizard.destination || 'Not selected'}</Text>
+                  {wizard.useBayuSuggestion && (
+                    <View style={styles.suggestedBadge}>
+                      <Ionicons name="sparkles" size={10} color={Colors.primary} />
+                      <Text style={styles.suggestedBadgeText}>Suggested by Bayu</Text>
+                    </View>
+                  )}
+                </View>
               </View>
               <View style={styles.reviewRow}>
                 <Ionicons name="time" size={20} color={Colors.primary} />
@@ -234,7 +422,13 @@ export default function ExploreScreen() {
               <View style={styles.reviewRow}>
                 <Ionicons name="calendar" size={20} color={Colors.primary} />
                 <Text style={styles.reviewLabel}>Travel Date</Text>
-                <Text style={styles.reviewValue}>{wizard.startDate ? travelMonths.find((m) => m.value === wizard.startDate)?.label || wizard.startDate : 'Not selected'}</Text>
+                <Text style={styles.reviewValue}>
+                  {wizard.exactDate
+                    ? `${formatDateDisplay(new Date(wizard.exactDate))} — ${formatDateDisplay(addDays(new Date(wizard.exactDate), durationToNights[wizard.duration] || 2))}`
+                    : wizard.startDate
+                      ? travelMonths.find((m) => m.value === wizard.startDate)?.label || wizard.startDate
+                      : 'Not selected'}
+                </Text>
               </View>
               <View style={styles.reviewRow}>
                 <Ionicons name="airplane" size={20} color={Colors.primary} />
@@ -283,7 +477,7 @@ export default function ExploreScreen() {
         {renderStep()}
       </View>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.md }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 80 }]}>
         {wizard.step > 1 && (
           <Button title="Back" onPress={() => setWizardStep(wizard.step - 1)} variant="outline" size="lg" style={{ flex: 1, marginRight: Spacing.sm }} />
         )}
@@ -350,6 +544,40 @@ const styles = StyleSheet.create({
   reviewCard: { gap: Spacing.md },
   reviewRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   reviewLabel: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, width: 80 },
-  reviewValue: { flex: 1, fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  reviewValue: { flex: 1, fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text, textAlign: 'right' },
   footer: { flexDirection: 'row', paddingHorizontal: Spacing.base, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.borderLight },
+  // Exact date styles
+  exactDateRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md, marginBottom: Spacing.sm },
+  exactDateLabel: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.text },
+  exactDateSection: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.base, marginBottom: Spacing.md, gap: Spacing.md },
+  datePickerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  datePickerLabel: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+  datePickerLabelText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.text },
+  datePickerButton: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: Colors.primary + '10', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.md },
+  datePickerButtonText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodySemiBold, color: Colors.primary },
+  endDateDisplay: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
+  endDateText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  endDateHint: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: Colors.textTertiary },
+  // Suggest CTA
+  suggestCTA: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.primary, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg, marginTop: Spacing.xl },
+  suggestCTAText: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.headingBold, color: '#FFFFFF' },
+  // AI Suggestion card
+  aiSuggestionCard: { borderWidth: 1.5, borderColor: Colors.border, borderRadius: BorderRadius.lg, padding: Spacing.base, marginBottom: Spacing.md, backgroundColor: Colors.surface },
+  aiSuggestionCardActive: { borderColor: Colors.primary, backgroundColor: Colors.primary + '08' },
+  aiSuggestionHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  aiSuggestionIcon: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.primary + '15', alignItems: 'center', justifyContent: 'center' },
+  aiSuggestionTitle: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.headingBold, color: Colors.text },
+  aiSuggestionSubtitle: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 1 },
+  aiSuggestionBody: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.borderLight },
+  aiSuggestionDest: { fontSize: Typography.sizes.lg, fontFamily: Typography.fonts.headingBold, color: Colors.primary, marginBottom: Spacing.sm },
+  reasonChips: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs },
+  reasonChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.primary + '10', paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: BorderRadius.full },
+  reasonChipText: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodyMedium, color: Colors.primary },
+  // Or divider
+  orDivider: { flexDirection: 'row', alignItems: 'center', marginVertical: Spacing.md },
+  orLine: { flex: 1, height: 1, backgroundColor: Colors.borderLight },
+  orText: { marginHorizontal: Spacing.md, fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textTertiary },
+  // Suggested badge in review
+  suggestedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 2 },
+  suggestedBadgeText: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodyMedium, color: Colors.primary },
 });

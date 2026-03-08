@@ -10,18 +10,46 @@ import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { useTripStore } from '@/store';
+import { sabahEvents, sabahDestinations } from '@/data';
 import { formatCurrency, formatDurationLabel } from '@/utils';
 import { Button, Badge } from '@/components/ui';
 import { ScreenHeader } from '@/components/shared';
-import { TripPackage, TierType } from '@/types';
+import { TripPackage, TierType, WizardState } from '@/types';
 
 const tierColors: Record<TierType, string> = { budget: Colors.budget, comfort: Colors.comfort, luxury: Colors.luxury };
 const tierLabels: Record<TierType, string> = { budget: 'BUDGET', comfort: 'RECOMMENDED', luxury: 'PREMIUM' };
+
+const getRecommendationReasons = (wizard: WizardState): string[] => {
+  const reasons: string[] = [];
+  const month = wizard.startDate ? parseInt(wizard.startDate.substring(5, 7), 10) : 0;
+
+  // Match events by month
+  if (month > 0) {
+    const monthEvents = sabahEvents.filter((e) => e.month === month);
+    monthEvents.slice(0, 1).forEach((evt) => {
+      reasons.push(`${evt.name} happening ${evt.dateRange}`);
+    });
+  }
+
+  // Match destination's bestTimeToVisit
+  if (wizard.destination) {
+    const dest = sabahDestinations.find((d) => d.name === wizard.destination);
+    if (dest && dest.bestTimeToVisit !== 'Year-round') {
+      reasons.push(`Peak season: ${dest.bestTimeToVisit}`);
+    }
+  }
+
+  // Tourism campaign
+  reasons.push('Tourism Sabah 2026 campaign');
+
+  return reasons.slice(0, 3);
+};
 
 export default function ResultsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { packages, selectPackage, wizard } = useTripStore();
+  const reasons = getRecommendationReasons(wizard);
 
   const handleSelect = (pkg: TripPackage) => {
     selectPackage(pkg);
@@ -76,6 +104,22 @@ export default function ResultsScreen() {
                   ))}
                 </View>
 
+                {/* Why this trip */}
+                {reasons.length > 0 && (
+                  <View style={styles.whySection}>
+                    <View style={styles.whyHeader}>
+                      <Ionicons name="sparkles" size={14} color={Colors.primary} />
+                      <Text style={styles.whyTitle}>Why this trip</Text>
+                    </View>
+                    {reasons.map((reason, i) => (
+                      <View key={i} style={styles.whyRow}>
+                        <Text style={styles.whyBullet}>•</Text>
+                        <Text style={styles.whyText}>{reason}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
                 <Button
                   title="View Itinerary"
                   onPress={() => handleSelect(pkg)}
@@ -94,7 +138,7 @@ export default function ResultsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  list: { padding: Spacing.base, paddingBottom: 40 },
+  list: { padding: Spacing.base, paddingBottom: 100 },
   contextBanner: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, backgroundColor: Colors.primary + '10', padding: Spacing.md, borderRadius: BorderRadius.md, marginBottom: Spacing.md },
   contextText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.primary, flex: 1 },
   subtitle: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginBottom: Spacing.lg, textAlign: 'center' },
@@ -111,4 +155,11 @@ const styles = StyleSheet.create({
   highlightsRow: { gap: Spacing.xs, marginBottom: Spacing.md },
   highlight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
   highlightText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary },
+  // Why this trip
+  whySection: { backgroundColor: Colors.primary + '08', borderRadius: BorderRadius.md, padding: Spacing.md, marginBottom: Spacing.md },
+  whyHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginBottom: Spacing.sm },
+  whyTitle: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.headingBold, color: Colors.primary },
+  whyRow: { flexDirection: 'row', gap: Spacing.xs, marginBottom: 2 },
+  whyBullet: { fontSize: Typography.sizes.sm, color: Colors.primary },
+  whyText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, flex: 1 },
 });

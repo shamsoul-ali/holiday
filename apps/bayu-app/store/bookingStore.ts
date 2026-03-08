@@ -16,6 +16,7 @@ interface BookingState {
   createBooking: (booking: Omit<Booking, 'id' | 'createdAt' | 'reference'>) => string;
   processPayment: (bookingId: string) => Promise<boolean>;
   getBookingsByStatus: (status: BookingStatus) => Booking[];
+  topUpWallet: (amount: number) => Promise<void>;
 }
 
 const generateReference = (): string => {
@@ -32,7 +33,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   wallet: { ...mockWallet },
   transactions: mockTransactions,
 
-  selectedPaymentMethod: 'fpx',
+  selectedPaymentMethod: 'bayu-credit',
   isProcessing: false,
   setPaymentMethod: (method) => set({ selectedPaymentMethod: method }),
 
@@ -62,5 +63,18 @@ export const useBookingStore = create<BookingState>((set, get) => ({
 
   getBookingsByStatus: (status) => {
     return get().bookings.filter((b) => b.status === status);
+  },
+
+  topUpWallet: async (amount: number) => {
+    set({ isProcessing: true });
+    await new Promise((r) => setTimeout(r, 2000));
+    set((s) => ({
+      isProcessing: false,
+      wallet: { ...s.wallet, balance: s.wallet.balance + amount },
+      transactions: [
+        { id: `TX${Date.now()}`, type: 'credit', amount, description: 'Wallet top-up', date: new Date().toISOString() },
+        ...s.transactions,
+      ],
+    }));
   },
 }));

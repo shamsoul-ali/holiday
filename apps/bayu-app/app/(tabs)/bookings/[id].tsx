@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -9,7 +9,7 @@ import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 import { useBookingStore } from '@/store';
 import { formatCurrency, formatDate, formatDateRange } from '@/utils';
-import { Badge, Card } from '@/components/ui';
+import { Badge, Card, Button } from '@/components/ui';
 import { ScreenHeader } from '@/components/shared';
 import { BookingStatus } from '@/types';
 
@@ -22,6 +22,7 @@ const statusColors: Record<BookingStatus, string> = {
 
 export default function BookingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { bookings } = useBookingStore();
   const booking = bookings.find((b) => b.id === id);
@@ -61,6 +62,18 @@ export default function BookingDetailScreen() {
           <Text style={styles.priceLabel}>Total Paid</Text>
           <Text style={styles.priceValue}>{formatCurrency(booking.totalCost)}</Text>
         </Card>
+
+        {booking.status === 'confirmed' && (
+          <Button
+            title="View My Journey"
+            onPress={() => router.push('/(tabs)/home/journey')}
+            variant="outline"
+            size="lg"
+            fullWidth
+            icon={<Ionicons name="map-outline" size={18} color={Colors.primary} />}
+            style={{ marginTop: Spacing.md }}
+          />
+        )}
       </ScrollView>
     </View>
   );
@@ -68,7 +81,7 @@ export default function BookingDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: Spacing.base, paddingBottom: 40 },
+  content: { padding: Spacing.base, paddingBottom: 100 },
   image: { width: '100%', height: 180, borderRadius: BorderRadius.lg, marginBottom: Spacing.md },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.lg },
   destination: { fontSize: Typography.sizes.xl, fontFamily: Typography.fonts.headingBold, color: Colors.text },

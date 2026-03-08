@@ -296,6 +296,35 @@ export interface GovernmentStats {
   revenue: number;
 }
 
+// Journey simulation types
+export type JourneyStepStatus = 'completed' | 'current' | 'upcoming';
+export type JourneyStepType = 'pre-trip' | 'airport-checkin' | 'departure-gate' | 'flight' | 'arrival' | 'transfer' | 'hotel-checkin' | 'activity' | 'meal' | 'hotel-checkout' | 'return-transfer' | 'return-flight' | 'trip-complete';
+
+export interface JourneyStep {
+  id: string;
+  type: JourneyStepType;
+  icon: string;
+  time: string;
+  date: string;
+  day: number;
+  title: string;
+  description: string;
+  status: JourneyStepStatus;
+  location?: string;
+  tips?: string;
+  cost?: number;
+  duration?: string;
+}
+
+export interface JourneySummary {
+  totalDays: number;
+  totalSpent: number;
+  placesVisited: number;
+  activitiesCompleted: number;
+  divesLogged: number;
+  memoriesMade: number;
+}
+
 export type DurationPreset = '2D1N' | '3D2N' | '4D3N' | '5D4N' | '7D6N';
 
 export interface WizardState {
@@ -311,6 +340,9 @@ export interface WizardState {
   infants: number;
   interests: string[];
   travelStyle: TierType;
+  useBayuSuggestion?: boolean;
+  exactDate?: string;
+  suggestedReasons?: string[];
 }
 
 export interface SabahIsland {

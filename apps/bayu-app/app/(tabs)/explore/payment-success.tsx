@@ -30,6 +30,11 @@ export default function PaymentSuccessScreen() {
     router.replace('/(tabs)/bookings');
   };
 
+  const handleViewJourney = () => {
+    resetWizard();
+    router.replace('/(tabs)/home/journey');
+  };
+
   const handleGoHome = () => {
     resetWizard();
     router.replace('/(tabs)/home');
@@ -59,6 +64,14 @@ export default function PaymentSuccessScreen() {
 
         <Animated.View entering={FadeInDown.delay(1100)} style={styles.actions}>
           <Button title="View My Bookings" onPress={handleViewBooking} size="lg" fullWidth />
+          <Button
+            title="View My Journey"
+            onPress={handleViewJourney}
+            variant="outline"
+            size="lg"
+            fullWidth
+            icon={<Ionicons name="map-outline" size={18} color={Colors.primary} />}
+          />
           <Button title="Back to Home" onPress={handleGoHome} variant="outline" size="lg" fullWidth />
         </Animated.View>
       </View>

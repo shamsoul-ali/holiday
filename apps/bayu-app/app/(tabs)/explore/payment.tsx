@@ -12,7 +12,7 @@ import { useGamificationStore } from '@/store';
 import { formatCurrency } from '@/utils';
 import { Button, Card, Input } from '@/components/ui';
 import { ScreenHeader } from '@/components/shared';
-import { banks, eWallets, mockWallet } from '@/data';
+import { banks, eWallets } from '@/data';
 import { PaymentMethod } from '@/types';
 
 const paymentTabs: { id: PaymentMethod; label: string; icon: string }[] = [
@@ -23,17 +23,20 @@ const paymentTabs: { id: PaymentMethod; label: string; icon: string }[] = [
   { id: 'bnpl', label: 'BNPL', icon: 'calendar' },
 ];
 
+const topUpAmounts = [500, 1000, 2000];
+
 export default function PaymentScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { selectedPackage, currentItinerary } = useTripStore();
-  const { selectedPaymentMethod, setPaymentMethod, processPayment, createBooking, isProcessing } = useBookingStore();
+  const { selectedPaymentMethod, setPaymentMethod, processPayment, createBooking, isProcessing, wallet, topUpWallet } = useBookingStore();
   const { stats } = useGamificationStore();
   const [selectedBank, setSelectedBank] = useState('');
   const [selectedWallet, setSelectedWallet] = useState('');
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
+  const [topUpAmount, setTopUpAmount] = useState(1000);
 
   if (!selectedPackage || !currentItinerary) return null;
 
@@ -54,9 +57,13 @@ export default function PaymentScreen() {
     router.push('/(tabs)/explore/payment-success');
   };
 
-  const walletBalance = mockWallet.balance;
+  const walletBalance = wallet.balance;
   const canPayFull = walletBalance >= selectedPackage.price;
-  const pointsDiscount = Math.min(Math.floor(mockWallet.loyaltyPoints / 100), Math.floor(selectedPackage.price * 0.1));
+  const pointsDiscount = Math.min(Math.floor(wallet.loyaltyPoints / 100), Math.floor(selectedPackage.price * 0.1));
+
+  const handleTopUp = async () => {
+    await topUpWallet(topUpAmount);
+  };
 
   const renderPaymentContent = () => {
     switch (selectedPaymentMethod) {
@@ -65,7 +72,7 @@ export default function PaymentScreen() {
           <View style={styles.methodContent}>
             {/* Wallet Card */}
             <LinearGradient
-              colors={['#0E7490', '#0891b2', '#06B6D4']}
+              colors={[...Colors.gradients.memberCard]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.creditCard}
@@ -86,7 +93,7 @@ export default function PaymentScreen() {
               <Text style={styles.creditBalanceValue}>RM {walletBalance.toFixed(2)}</Text>
               <View style={styles.creditPointsRow}>
                 <Ionicons name="star" size={14} color="#FFD700" />
-                <Text style={styles.creditPointsText}>{mockWallet.loyaltyPoints.toLocaleString()} reward points</Text>
+                <Text style={styles.creditPointsText}>{wallet.loyaltyPoints.toLocaleString()} reward points</Text>
               </View>
             </LinearGradient>
 
@@ -119,11 +126,39 @@ export default function PaymentScreen() {
                 <Text style={[styles.creditStatusText, { color: Colors.success }]}>Sufficient balance</Text>
               </View>
             ) : (
-              <View style={styles.creditStatusRow}>
-                <Ionicons name="alert-circle" size={20} color={Colors.warning} />
-                <Text style={[styles.creditStatusText, { color: Colors.warning }]}>
-                  Shortfall of {formatCurrency(selectedPackage.price - pointsDiscount - walletBalance)} — remaining will be charged via FPX
-                </Text>
+              <View>
+                <View style={styles.creditStatusRow}>
+                  <Ionicons name="alert-circle" size={20} color={Colors.warning} />
+                  <Text style={[styles.creditStatusText, { color: Colors.warning }]}>
+                    Shortfall of {formatCurrency(selectedPackage.price - pointsDiscount - walletBalance)}
+                  </Text>
+                </View>
+
+                {/* Top Up UI */}
+                <Card variant="outlined" style={styles.topUpCard}>
+                  <Text style={styles.topUpTitle}>Top Up Wallet</Text>
+                  <View style={styles.topUpChips}>
+                    {topUpAmounts.map((amount) => (
+                      <TouchableOpacity
+                        key={amount}
+                        style={[styles.topUpChip, topUpAmount === amount && styles.topUpChipActive]}
+                        onPress={() => setTopUpAmount(amount)}
+                      >
+                        <Text style={[styles.topUpChipText, topUpAmount === amount && styles.topUpChipTextActive]}>
+                          RM {amount.toLocaleString()}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <Button
+                    title={`Top Up RM ${topUpAmount.toLocaleString()}`}
+                    onPress={handleTopUp}
+                    size="md"
+                    fullWidth
+                    loading={isProcessing}
+                    icon={<Ionicons name="add-circle" size={18} color="#FFFFFF" />}
+                  />
+                </Card>
               </View>
             )}
 
@@ -162,12 +197,12 @@ export default function PaymentScreen() {
           <View style={styles.methodContent}>
             <Text style={styles.methodTitle}>Select E-Wallet</Text>
             <View style={styles.walletGrid}>
-              {eWallets.map((wallet) => (
-                <TouchableOpacity key={wallet.id} style={[styles.walletOption, selectedWallet === wallet.id && styles.walletSelected]} onPress={() => setSelectedWallet(wallet.id)}>
-                  <View style={[styles.walletIcon, { backgroundColor: wallet.color + '20' }]}>
-                    <Text style={[styles.walletIconText, { color: wallet.color }]}>{wallet.icon}</Text>
+              {eWallets.map((ew) => (
+                <TouchableOpacity key={ew.id} style={[styles.walletOption, selectedWallet === ew.id && styles.walletSelected]} onPress={() => setSelectedWallet(ew.id)}>
+                  <View style={[styles.walletIcon, { backgroundColor: ew.color + '20' }]}>
+                    <Text style={[styles.walletIconText, { color: ew.color }]}>{ew.icon}</Text>
                   </View>
-                  <Text style={styles.walletName}>{wallet.name}</Text>
+                  <Text style={styles.walletName}>{ew.name}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -225,7 +260,7 @@ export default function PaymentScreen() {
         </Card>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.md }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 80 }]}>
         <Button title={`Pay ${formatCurrency(selectedPackage.price)}`} onPress={handlePay} size="lg" fullWidth loading={isProcessing} />
       </View>
     </View>
@@ -234,13 +269,13 @@ export default function PaymentScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: Spacing.base, paddingBottom: 40 },
+  content: { padding: Spacing.base, paddingBottom: 100 },
   tabs: { flexDirection: 'row', backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: 4, marginBottom: Spacing.lg },
   tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: Spacing.sm, borderRadius: BorderRadius.md },
   tabActive: { backgroundColor: Colors.background, ...{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 } },
   tabLabel: { fontSize: 11, fontFamily: Typography.fonts.bodyMedium, color: Colors.textTertiary },
   tabLabelActive: { color: Colors.primary },
-  tabBadge: { position: 'absolute', top: -6, right: -4, backgroundColor: '#EF4444', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 4 },
+  tabBadge: { position: 'absolute', top: -6, right: -4, backgroundColor: Colors.accentRed, paddingHorizontal: 4, paddingVertical: 1, borderRadius: 4 },
   tabBadgeText: { fontSize: 7, fontFamily: Typography.fonts.headingBold, color: '#FFFFFF', letterSpacing: 0.3 },
   methodContent: { marginBottom: Spacing.lg },
   methodTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.md },
@@ -285,4 +320,12 @@ const styles = StyleSheet.create({
   creditStatusRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginTop: Spacing.md },
   creditStatusText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, flex: 1 },
   creditEarnNote: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.primary, textAlign: 'center', marginTop: Spacing.lg },
+  // Top Up styles
+  topUpCard: { marginTop: Spacing.md },
+  topUpTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.md },
+  topUpChips: { flexDirection: 'row', gap: Spacing.sm, marginBottom: Spacing.md },
+  topUpChip: { flex: 1, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
+  topUpChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  topUpChipText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textSecondary },
+  topUpChipTextActive: { color: '#FFFFFF' },
 });
