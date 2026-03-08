@@ -7,7 +7,7 @@ import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 import { useTripStore } from '@/store';
-import { formatCurrency, formatDateRange } from '@/utils';
+import { formatCurrency, formatDateRange, formatDurationLabel } from '@/utils';
 import { Button, Card, Chip } from '@/components/ui';
 import { ScreenHeader } from '@/components/shared';
 
@@ -21,7 +21,7 @@ const addOns = [
 export default function ReviewScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { selectedPackage, currentItinerary, addOns: selectedAddOns, toggleAddOn } = useTripStore();
+  const { selectedPackage, currentItinerary, wizard, addOns: selectedAddOns, toggleAddOn } = useTripStore();
 
   if (!selectedPackage || !currentItinerary) return null;
 
@@ -38,8 +38,10 @@ export default function ReviewScreen() {
         <Card style={styles.summaryCard}>
           <Text style={styles.sectionTitle}>Trip Summary</Text>
           <View style={styles.row}><Text style={styles.label}>Destination</Text><Text style={styles.value}>{currentItinerary.destination}</Text></View>
+          <View style={styles.row}><Text style={styles.label}>Duration</Text><Text style={styles.value}>{wizard.duration} ({formatDurationLabel(wizard.duration)})</Text></View>
           <View style={styles.row}><Text style={styles.label}>Dates</Text><Text style={styles.value}>{formatDateRange(currentItinerary.startDate, currentItinerary.endDate)}</Text></View>
-          <View style={styles.row}><Text style={styles.label}>Travelers</Text><Text style={styles.value}>{currentItinerary.travelers.adults} Adults</Text></View>
+          <View style={styles.row}><Text style={styles.label}>From</Text><Text style={styles.value}>{currentItinerary.departureCity}</Text></View>
+          <View style={styles.row}><Text style={styles.label}>Travelers</Text><Text style={styles.value}>{currentItinerary.travelers.adults} Adults{currentItinerary.travelers.children > 0 ? `, ${currentItinerary.travelers.children} Children` : ''}</Text></View>
           <View style={styles.row}><Text style={styles.label}>Package</Text><Text style={styles.value}>{selectedPackage.title}</Text></View>
         </Card>
 

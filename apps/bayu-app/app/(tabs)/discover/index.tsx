@@ -9,9 +9,11 @@ import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { useDiscoverStore, useGamificationStore } from '@/store';
-import { Badge, Card, StarRating } from '@/components/ui';
+import { Badge, Card, StarRating, EventCard } from '@/components/ui';
+import { sabahEvents, sabahNews } from '@/data';
+import { getRelativeTime } from '@/utils';
 
-const tabs = ['Food Map', 'Marketplace', 'Safety', 'Muslim', 'Badges'] as const;
+const tabs = ['Food Map', 'Marketplace', 'Safety', 'Muslim', 'Events', 'News', 'Badges'] as const;
 type TabType = typeof tabs[number];
 
 const foodTags = ['all', 'tourist-friendly', 'muslim-friendly', 'viral-spot', 'local-gem'] as const;
@@ -245,6 +247,62 @@ export default function DiscoverScreen() {
     );
   };
 
+  const [eventMonthFilter, setEventMonthFilter] = useState<number | null>(null);
+  const filteredEvents = eventMonthFilter
+    ? sabahEvents.filter((e) => e.month === eventMonthFilter)
+    : sabahEvents;
+
+  const eventMonths = [...new Set(sabahEvents.map((e) => e.month))].sort((a, b) => a - b);
+  const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  const renderEvents = () => (
+    <Animated.View entering={FadeInDown.duration(400)}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base }}>
+        <TouchableOpacity
+          style={[styles.chip, eventMonthFilter === null && styles.chipActive]}
+          onPress={() => setEventMonthFilter(null)}
+        >
+          <Text style={[styles.chipText, eventMonthFilter === null && styles.chipTextActive]}>All</Text>
+        </TouchableOpacity>
+        {eventMonths.map((m) => (
+          <TouchableOpacity
+            key={m}
+            style={[styles.chip, eventMonthFilter === m && styles.chipActive]}
+            onPress={() => setEventMonthFilter(m)}
+          >
+            <Text style={[styles.chipText, eventMonthFilter === m && styles.chipTextActive]}>{monthNames[m]}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      {filteredEvents.map((event) => (
+        <EventCard key={event.id} event={event} />
+      ))}
+    </Animated.View>
+  );
+
+  const renderNews = () => (
+    <Animated.View entering={FadeInDown.duration(400)}>
+      {sabahNews
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .map((item) => (
+          <Card key={item.id} style={styles.newsCard}>
+            <View style={styles.newsRow}>
+              <Image source={{ uri: item.image }} style={styles.newsImage} contentFit="cover" />
+              <View style={styles.newsInfo}>
+                <Text style={styles.newsTitle} numberOfLines={2}>{item.title}</Text>
+                <Text style={styles.newsSummary} numberOfLines={3}>{item.summary}</Text>
+                <View style={styles.newsMeta}>
+                  <Badge label={item.category} color={Colors.primary + '15'} textColor={Colors.primary} size="sm" />
+                  <Text style={styles.newsSource}>{item.source}</Text>
+                  <Text style={styles.newsDate}>{getRelativeTime(item.date)}</Text>
+                </View>
+              </View>
+            </View>
+          </Card>
+        ))}
+    </Animated.View>
+  );
+
   const renderBadges = () => {
     const earnedBadges = badges.filter((b) => b.earned);
     const unearnedBadges = badges.filter((b) => !b.earned);
@@ -342,6 +400,8 @@ export default function DiscoverScreen() {
         {activeTab === 'Marketplace' && renderMarketplace()}
         {activeTab === 'Safety' && renderSafety()}
         {activeTab === 'Muslim' && renderMuslim()}
+        {activeTab === 'Events' && renderEvents()}
+        {activeTab === 'News' && renderNews()}
         {activeTab === 'Badges' && renderBadges()}
       </ScrollView>
     </View>
@@ -452,4 +512,13 @@ const styles = StyleSheet.create({
   districtRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.md },
   districtLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   districtName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.body, color: Colors.textTertiary },
+  newsCard: { marginBottom: Spacing.md },
+  newsRow: { flexDirection: 'row', gap: Spacing.md },
+  newsImage: { width: 80, height: 80, borderRadius: BorderRadius.md },
+  newsInfo: { flex: 1 },
+  newsTitle: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  newsSummary: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, lineHeight: 18, marginTop: 2 },
+  newsMeta: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginTop: Spacing.xs },
+  newsSource: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodyMedium, color: Colors.textTertiary },
+  newsDate: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: Colors.textTertiary },
 });

@@ -7,3 +7,5 @@ export { Skeleton } from './Skeleton';
 export { GlassCard } from './GlassCard';
 export { StarRating } from './StarRating';
 export { ProgressBar } from './ProgressBar';
+export { IslandCard } from './IslandCard';
+export { EventCard } from './EventCard';

@@ -10,7 +10,7 @@ import { useTripStore } from '@/store';
 
 export default function LoadingScreen() {
   const router = useRouter();
-  const { generateTrip, generationMessage } = useTripStore();
+  const { generateTrip, generationMessage, wizard } = useTripStore();
   const scale = useSharedValue(1);
   const rotation = useSharedValue(0);
 
@@ -28,6 +28,9 @@ export default function LoadingScreen() {
   const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const rotateStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotation.value}deg` }] }));
 
+  const dest = wizard.destination || 'Sabah';
+  const dur = wizard.duration || '3D2N';
+
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.iconContainer, pulseStyle]}>
@@ -37,6 +40,7 @@ export default function LoadingScreen() {
       </Animated.View>
 
       <Animated.Text entering={FadeIn} style={styles.title}>Bayu AI is crafting your adventure</Animated.Text>
+      <Text style={styles.context}>{dur} trip to {dest}</Text>
       <Text style={styles.message}>{generationMessage || 'Initializing...'}</Text>
 
       <View style={styles.dots}>
@@ -54,7 +58,8 @@ export default function LoadingScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background, padding: Spacing.xl },
   iconContainer: { width: 120, height: 120, borderRadius: 60, backgroundColor: Colors.primary + '15', alignItems: 'center', justifyContent: 'center', marginBottom: Spacing['2xl'] },
-  title: { fontSize: Typography.sizes.xl, fontFamily: Typography.fonts.headingBold, color: Colors.text, marginBottom: Spacing.sm },
+  title: { fontSize: Typography.sizes.xl, fontFamily: Typography.fonts.headingBold, color: Colors.text, marginBottom: Spacing.xs, textAlign: 'center' },
+  context: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodyMedium, color: Colors.textSecondary, marginBottom: Spacing.sm },
   message: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.body, color: Colors.primary, marginBottom: Spacing['2xl'] },
   dots: { flexDirection: 'row', gap: Spacing.sm },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.primary },

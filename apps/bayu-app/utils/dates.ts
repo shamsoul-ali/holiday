@@ -1,4 +1,5 @@
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { format, parseISO, differenceInDays, addDays } from 'date-fns';
+import { DurationPreset } from '@/types';
 
 export const formatDate = (dateStr: string): string => {
   return format(parseISO(dateStr), 'dd MMM yyyy');
@@ -15,6 +16,27 @@ export const formatDateRange = (start: string, end: string): string => {
 export const getDuration = (start: string, end: string): string => {
   const days = differenceInDays(parseISO(end), parseISO(start));
   return `${days + 1}D${days}N`;
+};
+
+const durationDaysMap: Record<DurationPreset, number> = {
+  '2D1N': 2,
+  '3D2N': 3,
+  '4D3N': 4,
+  '5D4N': 5,
+  '7D6N': 7,
+};
+
+export const getDurationDays = (duration: DurationPreset): number => durationDaysMap[duration];
+
+export const computeEndDate = (startDate: string, duration: DurationPreset): string => {
+  const days = durationDaysMap[duration];
+  return format(addDays(parseISO(startDate), days - 1), 'yyyy-MM-dd');
+};
+
+export const formatDurationLabel = (duration: DurationPreset): string => {
+  const days = durationDaysMap[duration];
+  const nights = days - 1;
+  return `${days} Days ${nights} Night${nights > 1 ? 's' : ''}`;
 };
 
 export const getRelativeTime = (dateStr: string): string => {

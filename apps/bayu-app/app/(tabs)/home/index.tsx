@@ -10,9 +10,10 @@ import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { useAuthStore, useAppStore } from '@/store';
-import { featuredDestinations, sabahDestinations, categories } from '@/data';
+import { featuredDestinations, sabahDestinations, categories, featuredIslands, getUpcomingEvents } from '@/data';
 import { formatCurrency } from '@/utils';
 import { Badge } from '@/components/ui';
+import { IslandCard, EventCard } from '@/components/ui';
 import { SabahDestination, CrowdLevel } from '@/types';
 
 const { width } = Dimensions.get('window');
@@ -61,8 +62,8 @@ export default function HomeScreen() {
       <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.quickActions}>
         {[
           { icon: 'sparkles', label: 'AI Plan', color: Colors.primary, route: '/(tabs)/explore' },
+          { icon: 'boat', label: 'Islands', color: '#0891b2', route: '/(tabs)/home/islands' },
           { icon: 'restaurant', label: 'Food Map', color: '#F59E0B', route: '/(tabs)/discover' },
-          { icon: 'shield', label: 'Safety', color: '#EF4444', route: '/(tabs)/discover' },
           { icon: 'ribbon', label: 'My Pass', color: '#8B5CF6', route: '/(tabs)/discover' },
         ].map((action, i) => (
           <TouchableOpacity key={i} style={styles.quickAction} onPress={() => router.push(action.route as any)}>
@@ -111,6 +112,41 @@ export default function HomeScreen() {
                 </View>
               </LinearGradient>
             </TouchableOpacity>
+          )}
+        />
+      </Animated.View>
+
+      {/* Sabah Islands */}
+      <Animated.View entering={FadeInDown.delay(250).duration(500)}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Sabah Islands</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/home/islands' as any)}><Text style={styles.seeAll}>See All 40+</Text></TouchableOpacity>
+        </View>
+        <FlatList
+          horizontal
+          data={featuredIslands}
+          keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: Spacing.base }}
+          renderItem={({ item }) => (
+            <IslandCard island={item} compact onPress={() => router.push('/(tabs)/home/islands' as any)} />
+          )}
+        />
+      </Animated.View>
+
+      {/* Upcoming Events */}
+      <Animated.View entering={FadeInDown.delay(280).duration(500)}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Upcoming Events</Text>
+        </View>
+        <FlatList
+          horizontal
+          data={getUpcomingEvents().slice(0, 4)}
+          keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: Spacing.base }}
+          renderItem={({ item }) => (
+            <EventCard event={item} compact />
           )}
         />
       </Animated.View>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { TierType, TripPackage, Itinerary, WizardState } from '@/types';
-import { islandPackages, sabahItinerary } from '@/data';
+import { islandPackages } from '@/data';
+import { getItineraryForDuration } from '@/data/itineraries';
 
 interface TripState {
   // Wizard
@@ -29,12 +30,23 @@ interface TripState {
   toggleAddOn: (addOn: string) => void;
 }
 
+export const DEPARTURE_CITIES = [
+  'Kuala Lumpur',
+  'Penang',
+  'Johor Bahru',
+  'Kuching',
+  'Singapore',
+  'Kota Bharu',
+  'Langkawi',
+] as const;
+
 const defaultWizard: WizardState = {
   step: 1,
   destination: '',
   departureCity: 'Kuala Lumpur',
   startDate: '',
   endDate: '',
+  duration: '3D2N',
   budget: 3000,
   adults: 2,
   children: 0,
@@ -43,15 +55,21 @@ const defaultWizard: WizardState = {
   travelStyle: 'comfort',
 };
 
-const generationMessages = [
-  'Checking Sipadan permits...',
-  'Scanning crowd levels at islands...',
-  'Finding halal restaurants in Sabah...',
-  'Checking tide & weather conditions...',
-  'Contacting verified local guides...',
-  'Optimizing your Sabah adventure...',
-  'Bayu AI is almost ready...',
-];
+const buildGenerationMessages = (wizard: WizardState): string[] => {
+  const dest = wizard.destination || 'Sabah';
+  const dur = wizard.duration || '3D2N';
+  const city = wizard.departureCity || 'KL';
+  return [
+    `Searching flights from ${city}...`,
+    `Checking ${dest} permits & availability...`,
+    `Scanning crowd levels at islands...`,
+    `Finding halal restaurants for ${dur}...`,
+    `Checking tide & weather conditions...`,
+    `Contacting verified local guides...`,
+    `Optimizing your ${dest} adventure...`,
+    'Bayu AI is almost ready...',
+  ];
+};
 
 export const useTripStore = create<TripState>((set, get) => ({
   wizard: { ...defaultWizard },
@@ -63,7 +81,8 @@ export const useTripStore = create<TripState>((set, get) => ({
   generationMessage: '',
   generateTrip: async () => {
     set({ isGenerating: true });
-    for (const msg of generationMessages) {
+    const messages = buildGenerationMessages(get().wizard);
+    for (const msg of messages) {
       set({ generationMessage: msg });
       await new Promise((r) => setTimeout(r, 700));
     }
@@ -72,7 +91,16 @@ export const useTripStore = create<TripState>((set, get) => ({
 
   packages: [],
   selectedPackage: null,
-  selectPackage: (pkg) => set({ selectedPackage: pkg, currentItinerary: sabahItinerary }),
+  selectPackage: (pkg) => {
+    const { wizard } = get();
+    const itinerary = getItineraryForDuration(
+      wizard.duration,
+      wizard.destination ? `${wizard.destination}, Malaysia` : 'Sabah, Malaysia',
+      wizard.startDate || '2026-04-15',
+      wizard.departureCity,
+    );
+    set({ selectedPackage: pkg, currentItinerary: itinerary });
+  },
 
   currentItinerary: null,
   selectedDay: 1,

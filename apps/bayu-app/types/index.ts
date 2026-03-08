@@ -296,16 +296,56 @@ export interface GovernmentStats {
   revenue: number;
 }
 
+export type DurationPreset = '2D1N' | '3D2N' | '4D3N' | '5D4N' | '7D6N';
+
 export interface WizardState {
   step: number;
   destination: string;
   departureCity: string;
   startDate: string;
   endDate: string;
+  duration: DurationPreset;
   budget: number;
   adults: number;
   children: number;
   infants: number;
   interests: string[];
   travelStyle: TierType;
+}
+
+export interface SabahIsland {
+  id: string;
+  name: string;
+  region: string;
+  image: string;
+  activities: string[];
+  difficulty: 'easy' | 'moderate' | 'hard';
+  access: string;
+  isMarinePark: boolean;
+  marineParkName?: string;
+  highlight: string;
+  permitRequired: boolean;
+  coordinates?: { lat: number; lng: number };
+}
+
+export interface SabahEvent {
+  id: string;
+  name: string;
+  month: number;
+  dateRange: string;
+  location: string;
+  description: string;
+  category: string;
+  image: string;
+  isFeatured: boolean;
+}
+
+export interface SabahNews {
+  id: string;
+  title: string;
+  summary: string;
+  date: string;
+  category: string;
+  image: string;
+  source: string;
 }

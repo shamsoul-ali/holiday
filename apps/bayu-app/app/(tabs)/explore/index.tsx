@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,20 +7,36 @@ import Animated, { FadeInRight } from 'react-native-reanimated';
 import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
-import { useTripStore } from '@/store';
+import { useTripStore, DEPARTURE_CITIES } from '@/store/tripStore';
 import { Button, Chip, ProgressBar, Card } from '@/components/ui';
 import { ScreenHeader } from '@/components/shared';
 import { sabahDestinations } from '@/data';
-import { formatCurrency } from '@/utils';
-import { TierType } from '@/types';
+import { formatCurrency, formatDurationLabel } from '@/utils';
+import { TierType, DurationPreset } from '@/types';
 import { hapticSelection } from '@/utils';
 
 const interests = ['Island Hopping', 'Diving & Snorkeling', 'Mountain Climbing', 'Wildlife Safari', 'Cultural Heritage', 'Food Tour', 'Eco-Tourism', 'Adventure Sports', 'Photography', 'Relaxation', 'River Cruise', 'Beach & Sunset'];
 
+const TOTAL_STEPS = 5;
+
+const durationPresets: DurationPreset[] = ['2D1N', '3D2N', '4D3N', '5D4N', '7D6N'];
+
+const travelMonths = [
+  { label: 'Apr 2026', value: '2026-04-15' },
+  { label: 'May 2026', value: '2026-05-15' },
+  { label: 'Jun 2026', value: '2026-06-15' },
+  { label: 'Jul 2026', value: '2026-07-15' },
+  { label: 'Aug 2026', value: '2026-08-15' },
+  { label: 'Sep 2026', value: '2026-09-15' },
+  { label: 'Oct 2026', value: '2026-10-15' },
+  { label: 'Nov 2026', value: '2026-11-15' },
+  { label: 'Dec 2026', value: '2026-12-15' },
+];
+
 export default function ExploreScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { wizard, setWizardStep, updateWizard, generateTrip, isGenerating, generationMessage } = useTripStore();
+  const { wizard, setWizardStep, updateWizard } = useTripStore();
 
   const handleGenerate = async () => {
     router.push('/(tabs)/explore/loading');
@@ -54,6 +70,60 @@ export default function ExploreScreen() {
         );
 
       case 2:
+        return (
+          <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
+            <Text style={styles.stepTitle}>When & how long?</Text>
+            <Text style={styles.stepSubtitle}>Set your trip duration and travel dates</Text>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.fieldLabel}>Duration</Text>
+              <View style={styles.durationRow}>
+                {durationPresets.map((dur) => (
+                  <TouchableOpacity
+                    key={dur}
+                    style={[styles.durationChip, wizard.duration === dur && styles.durationChipActive]}
+                    onPress={() => { hapticSelection(); updateWizard({ duration: dur }); }}
+                  >
+                    <Text style={[styles.durationChipText, wizard.duration === dur && styles.durationChipTextActive]}>{dur}</Text>
+                    <Text style={[styles.durationChipSub, wizard.duration === dur && styles.durationChipSubActive]}>
+                      {formatDurationLabel(dur)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.fieldLabel, { marginTop: Spacing.xl }]}>Travel Month</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthScroll} contentContainerStyle={{ gap: Spacing.xs }}>
+                {travelMonths.map((m) => (
+                  <TouchableOpacity
+                    key={m.value}
+                    style={[styles.monthChip, wizard.startDate === m.value && styles.monthChipActive]}
+                    onPress={() => { hapticSelection(); updateWizard({ startDate: m.value }); }}
+                  >
+                    <Text style={[styles.monthChipText, wizard.startDate === m.value && styles.monthChipTextActive]}>{m.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <Text style={[styles.fieldLabel, { marginTop: Spacing.xl }]}>Departure City</Text>
+              {DEPARTURE_CITIES.map((city) => (
+                <TouchableOpacity
+                  key={city}
+                  style={[styles.cityOption, wizard.departureCity === city && styles.citySelected]}
+                  onPress={() => { hapticSelection(); updateWizard({ departureCity: city }); }}
+                >
+                  <Ionicons name="airplane-outline" size={18} color={wizard.departureCity === city ? Colors.primary : Colors.textTertiary} />
+                  <Text style={[styles.cityText, wizard.departureCity === city && styles.cityTextActive]}>{city}</Text>
+                  {wizard.departureCity === city && (
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.primary} style={{ marginLeft: 'auto' }} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        );
+
+      case 3:
         return (
           <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
             <Text style={styles.stepTitle}>Set your budget</Text>
@@ -101,7 +171,7 @@ export default function ExploreScreen() {
           </Animated.View>
         );
 
-      case 3:
+      case 4:
         return (
           <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
             <Text style={styles.stepTitle}>What interests you?</Text>
@@ -146,7 +216,7 @@ export default function ExploreScreen() {
           </Animated.View>
         );
 
-      case 4:
+      case 5:
         return (
           <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
             <Text style={styles.stepTitle}>Review your trip</Text>
@@ -155,6 +225,21 @@ export default function ExploreScreen() {
                 <Ionicons name="location" size={20} color={Colors.primary} />
                 <Text style={styles.reviewLabel}>Destination</Text>
                 <Text style={styles.reviewValue}>{wizard.destination || 'Not selected'}</Text>
+              </View>
+              <View style={styles.reviewRow}>
+                <Ionicons name="time" size={20} color={Colors.primary} />
+                <Text style={styles.reviewLabel}>Duration</Text>
+                <Text style={styles.reviewValue}>{wizard.duration} ({formatDurationLabel(wizard.duration)})</Text>
+              </View>
+              <View style={styles.reviewRow}>
+                <Ionicons name="calendar" size={20} color={Colors.primary} />
+                <Text style={styles.reviewLabel}>Travel Date</Text>
+                <Text style={styles.reviewValue}>{wizard.startDate ? travelMonths.find((m) => m.value === wizard.startDate)?.label || wizard.startDate : 'Not selected'}</Text>
+              </View>
+              <View style={styles.reviewRow}>
+                <Ionicons name="airplane" size={20} color={Colors.primary} />
+                <Text style={styles.reviewLabel}>From</Text>
+                <Text style={styles.reviewValue}>{wizard.departureCity}</Text>
               </View>
               <View style={styles.reviewRow}>
                 <Ionicons name="cash" size={20} color={Colors.primary} />
@@ -190,8 +275,8 @@ export default function ExploreScreen() {
       <ScreenHeader title="Plan Your Trip" showBack={wizard.step > 1} />
 
       <View style={styles.progressRow}>
-        <ProgressBar progress={wizard.step / 4} />
-        <Text style={styles.stepIndicator}>Step {wizard.step} of 4</Text>
+        <ProgressBar progress={wizard.step / TOTAL_STEPS} />
+        <Text style={styles.stepIndicator}>Step {wizard.step} of {TOTAL_STEPS}</Text>
       </View>
 
       <View style={styles.content}>
@@ -203,11 +288,11 @@ export default function ExploreScreen() {
           <Button title="Back" onPress={() => setWizardStep(wizard.step - 1)} variant="outline" size="lg" style={{ flex: 1, marginRight: Spacing.sm }} />
         )}
         <Button
-          title={wizard.step === 4 ? 'Generate with AI' : 'Continue'}
-          onPress={wizard.step === 4 ? handleGenerate : () => setWizardStep(wizard.step + 1)}
+          title={wizard.step === TOTAL_STEPS ? 'Generate with AI' : 'Continue'}
+          onPress={wizard.step === TOTAL_STEPS ? handleGenerate : () => setWizardStep(wizard.step + 1)}
           size="lg"
           style={{ flex: 1 }}
-          icon={wizard.step === 4 ? <Ionicons name="sparkles" size={18} color="#fff" /> : undefined}
+          icon={wizard.step === TOTAL_STEPS ? <Ionicons name="sparkles" size={18} color="#fff" /> : undefined}
         />
       </View>
     </View>
@@ -222,11 +307,28 @@ const styles = StyleSheet.create({
   stepContent: { flex: 1, paddingHorizontal: Spacing.base },
   stepTitle: { fontSize: Typography.sizes.lg, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.xs },
   stepSubtitle: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginBottom: Spacing.lg },
+  fieldLabel: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.sm },
   destOption: { flexDirection: 'row', alignItems: 'center', padding: Spacing.base, borderRadius: BorderRadius.md, borderWidth: 1.5, borderColor: Colors.border, marginBottom: Spacing.sm },
   destSelected: { borderColor: Colors.primary, backgroundColor: Colors.primary + '08' },
   destInfo: { flex: 1 },
   destName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
   destDesc: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
+  durationRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  durationChip: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.surface, alignItems: 'center', minWidth: 80 },
+  durationChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' },
+  durationChipText: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.headingBold, color: Colors.text },
+  durationChipTextActive: { color: Colors.primary },
+  durationChipSub: { fontSize: 10, fontFamily: Typography.fonts.body, color: Colors.textTertiary, marginTop: 2 },
+  durationChipSubActive: { color: Colors.primary },
+  monthScroll: { marginBottom: Spacing.sm },
+  monthChip: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface },
+  monthChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primary },
+  monthChipText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textSecondary },
+  monthChipTextActive: { color: '#FFFFFF' },
+  cityOption: { flexDirection: 'row', alignItems: 'center', padding: Spacing.md, borderRadius: BorderRadius.md, borderWidth: 1.5, borderColor: Colors.border, marginBottom: Spacing.sm, gap: Spacing.sm },
+  citySelected: { borderColor: Colors.primary, backgroundColor: Colors.primary + '08' },
+  cityText: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodyMedium, color: Colors.text },
+  cityTextActive: { color: Colors.primary, fontFamily: Typography.fonts.bodySemiBold },
   budgetCard: { alignItems: 'center', paddingVertical: Spacing.xl },
   budgetAmount: { fontSize: Typography.sizes['3xl'], fontFamily: Typography.fonts.headingBold, color: Colors.primary },
   budgetPer: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary },

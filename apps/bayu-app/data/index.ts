@@ -11,3 +11,6 @@ export { foodSpots } from './food-spots';
 export { safetyAlerts, emergencyContacts } from './safety';
 export { travelBadges, travelPassStats } from './gamification';
 export { governmentStats } from './government';
+export { sabahIslands, featuredIslands, islandRegions, islandActivities } from './islands';
+export { sabahEvents, getUpcomingEvents } from './events';
+export { sabahNews } from './news';
