@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   segmentActive: { backgroundColor: Colors.background, ...Shadows.sm },
   segmentText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textTertiary },
   segmentTextActive: { color: Colors.primary },
-  list: { paddingHorizontal: Spacing.base, paddingBottom: 40 },
+  list: { paddingHorizontal: Spacing.base, paddingBottom: 100 },
   bookingCard: { flexDirection: 'row', backgroundColor: Colors.background, borderRadius: BorderRadius.lg, overflow: 'hidden', ...Shadows.md },
   bookingImage: { width: 100, height: 110 },
   bookingBody: { flex: 1, padding: Spacing.md, justifyContent: 'space-between' },

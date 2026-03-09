@@ -9,11 +9,12 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
-import { useAuthStore, useAppStore } from '@/store';
-import { featuredDestinations, sabahDestinations, categories, featuredIslands, getUpcomingEvents } from '@/data';
+import { useAuthStore, useAppStore, useBookingStore } from '@/store';
+import { featuredDestinations, sabahDestinations, categories, featuredIslands, getUpcomingEvents, sabahItinerary } from '@/data';
 import { formatCurrency } from '@/utils';
 import { Badge } from '@/components/ui';
 import { IslandCard, EventCard } from '@/components/ui';
+import { UpcomingTripCard } from '@/components/UpcomingTripCard';
 import { SabahDestination, CrowdLevel } from '@/types';
 
 const { width } = Dimensions.get('window');
@@ -22,7 +23,7 @@ const CARD_WIDTH = width * 0.75;
 const crowdColors: Record<CrowdLevel, string> = {
   low: Colors.success,
   moderate: Colors.warning,
-  high: '#F97316',
+  high: Colors.sunset,
   'very-high': Colors.error,
 };
 
@@ -31,11 +32,17 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
   const notificationCount = useAppStore((s) => s.notificationCount);
+  const bookings = useBookingStore((s) => s.bookings);
+
+  const upcomingBooking = bookings
+    .filter((b) => b.status === 'confirmed')
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())[0]
+    || bookings.find((b) => b.id === 'BK001');
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
       {/* Header */}
-      <LinearGradient colors={['#0891b2', '#06B6D4']} style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
+      <LinearGradient colors={[...Colors.gradients.sabahSky]} style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.greeting}>Hello, {user?.name?.split(' ')[0] || 'Traveler'} 👋</Text>
@@ -62,9 +69,9 @@ export default function HomeScreen() {
       <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.quickActions}>
         {[
           { icon: 'sparkles', label: 'AI Plan', color: Colors.primary, route: '/(tabs)/explore' },
-          { icon: 'boat', label: 'Islands', color: '#0891b2', route: '/(tabs)/home/islands' },
-          { icon: 'restaurant', label: 'Food Map', color: '#F59E0B', route: '/(tabs)/discover' },
-          { icon: 'ribbon', label: 'My Pass', color: '#8B5CF6', route: '/(tabs)/discover' },
+          { icon: 'boat', label: 'Islands', color: Colors.sky, route: '/(tabs)/home/islands' },
+          { icon: 'restaurant', label: 'Food Map', color: Colors.sunset, route: '/(tabs)/discover' },
+          { icon: 'ribbon', label: 'My Pass', color: Colors.category.cultural, route: '/(tabs)/discover' },
         ].map((action, i) => (
           <TouchableOpacity key={i} style={styles.quickAction} onPress={() => router.push(action.route as any)}>
             <View style={[styles.quickActionIcon, { backgroundColor: action.color + '15' }]}>
@@ -75,11 +82,21 @@ export default function HomeScreen() {
         ))}
       </Animated.View>
 
+      {/* Upcoming Trip */}
+      {upcomingBooking && (
+        <Animated.View entering={FadeInDown.delay(150).duration(500)} style={{ paddingHorizontal: Spacing.base }}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Upcoming Trip</Text>
+          </View>
+          <UpcomingTripCard booking={upcomingBooking} itinerary={sabahItinerary} onPress={() => router.push('/(tabs)/home/journey')} />
+        </Animated.View>
+      )}
+
       {/* Featured Sabah */}
-      <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(300).duration(500)}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Featured Sabah</Text>
-          <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/discover' as any)}><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
         </View>
         <FlatList
           horizontal
@@ -106,7 +123,7 @@ export default function HomeScreen() {
                 <View style={styles.featuredPriceRow}>
                   <Text style={styles.featuredPrice}>From {formatCurrency(item.price)}</Text>
                   <View style={styles.featuredRating}>
-                    <Ionicons name="star" size={14} color="#F59E0B" />
+                    <Ionicons name="star" size={14} color={Colors.sunset} />
                     <Text style={styles.featuredRatingText}>{item.rating}</Text>
                   </View>
                 </View>
@@ -117,7 +134,7 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Sabah Islands */}
-      <Animated.View entering={FadeInDown.delay(250).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(350).duration(500)}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Sabah Islands</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)/home/islands' as any)}><Text style={styles.seeAll}>See All 40+</Text></TouchableOpacity>
@@ -135,7 +152,7 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Upcoming Events */}
-      <Animated.View entering={FadeInDown.delay(280).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(380).duration(500)}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Upcoming Events</Text>
         </View>
@@ -146,19 +163,19 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: Spacing.base }}
           renderItem={({ item }) => (
-            <EventCard event={item} compact />
+            <EventCard event={item} compact onPress={() => router.push('/(tabs)/discover' as any)} />
           )}
         />
       </Animated.View>
 
       {/* Categories */}
-      <Animated.View entering={FadeInDown.delay(300).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(400).duration(500)}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Explore Categories</Text>
         </View>
         <View style={styles.categoriesGrid}>
           {categories.map((cat) => (
-            <TouchableOpacity key={cat.id} style={styles.categoryItem}>
+            <TouchableOpacity key={cat.id} style={styles.categoryItem} onPress={() => router.push({ pathname: '/(tabs)/home/category/[id]', params: { id: cat.id } })}>
               <View style={[styles.categoryIcon, { backgroundColor: cat.color + '15' }]}>
                 <Ionicons name={cat.icon as any} size={22} color={cat.color} />
               </View>
@@ -169,10 +186,10 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Popular in Sabah */}
-      <Animated.View entering={FadeInDown.delay(400).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(500).duration(500)}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Popular in Sabah</Text>
-          <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/discover' as any)}><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
         </View>
         <FlatList
           horizontal
@@ -192,10 +209,10 @@ export default function HomeScreen() {
       </Animated.View>
 
       {/* Crowd Monitor */}
-      <Animated.View entering={FadeInDown.delay(500).duration(500)}>
+      <Animated.View entering={FadeInDown.delay(600).duration(500)}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Crowd Monitor</Text>
-          <TouchableOpacity><Text style={styles.seeAll}>Live</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/discover' as any)}><Text style={styles.seeAll}>Live</Text></TouchableOpacity>
         </View>
         <FlatList
           horizontal

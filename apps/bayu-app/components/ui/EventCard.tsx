@@ -15,9 +15,9 @@ interface EventCardProps {
 }
 
 const categoryColors: Record<string, string> = {
-  Cultural: '#7C3AED',
-  Sports: '#EF4444',
-  Food: '#F59E0B',
+  Cultural: Colors.category.cultural,
+  Sports: Colors.category.sports,
+  Food: Colors.category.food,
 };
 
 const monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

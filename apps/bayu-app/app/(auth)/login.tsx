@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,9 +29,7 @@ export default function LoginScreen() {
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={[styles.container, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]}>
         <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.logoContainer}>
-          <View style={styles.logo}>
-            <Ionicons name="earth" size={32} color="#FFFFFF" />
-          </View>
+          <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
           <Text style={styles.brandName}>Bayu</Text>
           <Text style={styles.tagline}>Sabah Smart Tourism</Text>
         </Animated.View>
@@ -91,7 +89,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Colors.background },
   container: { flexGrow: 1, paddingHorizontal: Spacing.xl },
   logoContainer: { alignItems: 'center', marginBottom: Spacing['3xl'] },
-  logo: { width: 64, height: 64, borderRadius: 18, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', marginBottom: Spacing.md },
+  logo: { width: 80, height: 80, borderRadius: 20, marginBottom: Spacing.md },
   brandName: { fontSize: Typography.sizes['2xl'], fontFamily: Typography.fonts.headingBold, color: Colors.text },
   tagline: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: Spacing.xs },
   form: { flex: 1 },

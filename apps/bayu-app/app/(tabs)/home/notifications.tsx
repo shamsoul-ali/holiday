@@ -22,7 +22,7 @@ export default function NotificationsScreen() {
       <FlatList
         data={mockNotifications}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: Spacing.base }}
+        contentContainerStyle={{ padding: Spacing.base, paddingBottom: 100 }}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.sm }} />}
         renderItem={({ item }) => {
           const iconInfo = iconMap[item.type] || { name: 'notifications', color: Colors.textTertiary };

@@ -27,7 +27,7 @@ export default function ProfileScreen() {
   const profileStats = [
     { label: 'Trips', value: user?.tripsCount || 0, icon: 'airplane', color: Colors.primary },
     { label: 'Districts', value: stats.districtsVisited, icon: 'map', color: Colors.accent },
-    { label: 'Badges', value: stats.badgesEarned, icon: 'ribbon', color: '#8B5CF6' },
+    { label: 'Badges', value: stats.badgesEarned, icon: 'ribbon', color: Colors.category.cultural },
   ];
 
   const menuSections = [
@@ -50,17 +50,17 @@ export default function ProfileScreen() {
       title: 'General',
       items: [
         { icon: 'settings-outline', label: 'Settings', route: '/(tabs)/profile/settings' },
-        { icon: 'help-circle-outline', label: 'Help & Support', route: null },
-        { icon: 'document-text-outline', label: 'Terms & Privacy', route: null },
-        { icon: 'star-outline', label: 'Rate the App', route: null },
+        { icon: 'help-circle-outline', label: 'Help & Support', route: '/(tabs)/profile/help' },
+        { icon: 'document-text-outline', label: 'Terms & Privacy', route: '/(tabs)/profile/terms' },
+        { icon: 'star-outline', label: 'Rate the App', route: '/(tabs)/profile/rate' },
       ],
     },
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
-      <LinearGradient colors={['#0891b2', '#06B6D4']} style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
+      <LinearGradient colors={[...Colors.gradients.sabahSky]} style={[styles.header, { paddingTop: insets.top + Spacing.lg }]}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{user?.name?.charAt(0) || 'A'}</Text>
         </View>
@@ -84,7 +84,7 @@ export default function ProfileScreen() {
       {/* Membership Card */}
       <View style={styles.memberCardWrapper}>
         <LinearGradient
-          colors={['#0E7490', '#0891b2', '#06B6D4']}
+          colors={[...Colors.gradients.memberCard]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.memberCard}

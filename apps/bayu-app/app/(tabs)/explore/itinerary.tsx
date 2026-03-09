@@ -14,10 +14,10 @@ import { Button, Badge, Card } from '@/components/ui';
 import { ActivityType } from '@/types';
 
 const activityColors: Record<ActivityType, string> = {
-  transport: '#3B82F6',
-  meal: '#F59E0B',
-  activity: '#10B981',
-  hotel: '#8B5CF6',
+  transport: Colors.sky,
+  meal: Colors.sunset,
+  activity: Colors.secondary,
+  hotel: Colors.category.cultural,
   shopping: '#EC4899',
   free_time: '#6B7280',
 };
@@ -42,7 +42,7 @@ export default function ItineraryScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Hero */}
         <View style={styles.hero}>
           <Image source={{ uri: selectedPackage.image }} style={styles.heroImage} contentFit="cover" />
@@ -120,7 +120,7 @@ export default function ItineraryScreen() {
       </ScrollView>
 
       {/* Floating Book Button */}
-      <View style={[styles.floatingFooter, { paddingBottom: insets.bottom + Spacing.md }]}>
+      <View style={[styles.floatingFooter, { paddingBottom: insets.bottom + 80 }]}>
         <View>
           <Text style={styles.footerPrice}>{formatCurrency(selectedPackage.price)}</Text>
           <Text style={styles.footerPer}>total for {currentItinerary.travelers.adults} pax</Text>

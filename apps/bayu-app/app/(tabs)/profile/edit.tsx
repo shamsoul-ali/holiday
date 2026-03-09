@@ -31,5 +31,5 @@ export default function EditProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: Spacing.base },
+  content: { padding: Spacing.base, paddingBottom: 100 },
 });

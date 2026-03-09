@@ -9,7 +9,7 @@ interface StarRatingProps {
   color?: string;
 }
 
-export const StarRating: React.FC<StarRatingProps> = ({ rating, size = 14, color = '#F59E0B' }) => {
+export const StarRating: React.FC<StarRatingProps> = ({ rating, size = 14, color = '#F7B731' }) => {
   const fullStars = Math.floor(rating);
   const hasHalf = rating % 1 >= 0.5;
 

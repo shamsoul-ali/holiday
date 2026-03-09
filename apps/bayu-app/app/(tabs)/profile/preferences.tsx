@@ -40,7 +40,7 @@ export default function PreferencesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: Spacing.base, paddingBottom: 40 },
+  content: { padding: Spacing.base, paddingBottom: 100 },
   sectionTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text, marginTop: Spacing.xl, marginBottom: Spacing.md },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
 });

@@ -45,7 +45,7 @@ export const IslandCard: React.FC<IslandCardProps> = ({ island, onPress, compact
         <View style={styles.headerRow}>
           <Text style={styles.name}>{island.name}</Text>
           {island.isMarinePark && (
-            <Badge label="Marine Park" color="#0891b2" size="sm" />
+            <Badge label="Marine Park" color={Colors.primary} size="sm" />
           )}
         </View>
         <View style={styles.regionRow}>

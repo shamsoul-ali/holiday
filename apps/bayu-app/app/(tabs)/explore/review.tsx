@@ -81,7 +81,7 @@ export default function ReviewScreen() {
         </Card>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.md }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 80 }]}>
         <Button title="Proceed to Payment" onPress={() => router.push('/(tabs)/explore/payment')} size="lg" fullWidth icon={<Ionicons name="card" size={18} color="#fff" />} />
       </View>
     </View>
@@ -90,7 +90,7 @@ export default function ReviewScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { padding: Spacing.base, paddingBottom: 40 },
+  content: { padding: Spacing.base, paddingBottom: 100 },
   summaryCard: { marginBottom: Spacing.md },
   sectionTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.md },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.xs },

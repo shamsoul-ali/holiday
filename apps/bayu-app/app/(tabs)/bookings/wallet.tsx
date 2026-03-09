@@ -19,7 +19,7 @@ export default function WalletScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScreenHeader title="My Wallet" />
 
-      <LinearGradient colors={['#059669', '#10B981']} style={styles.balanceCard}>
+      <LinearGradient colors={[...Colors.gradients.jungleMist]} style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>Available Balance</Text>
         <Text style={styles.balanceAmount}>{formatCurrencyDecimal(wallet.balance)}</Text>
         <View style={styles.pointsRow}>
@@ -32,7 +32,7 @@ export default function WalletScreen() {
       <FlatList
         data={transactions}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: Spacing.base, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: Spacing.base, paddingBottom: 100 }}
         ItemSeparatorComponent={() => <View style={{ height: Spacing.sm }} />}
         renderItem={({ item }) => (
           <Card variant="outlined" padding={Spacing.md}>

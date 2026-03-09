@@ -26,7 +26,7 @@ export default function GovernmentDashboard() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Total Visitors */}
         <Animated.View entering={FadeInDown.delay(100).duration(500)}>
-          <LinearGradient colors={['#0891b2', '#06B6D4']} style={styles.heroCard}>
+          <LinearGradient colors={[...Colors.gradients.sabahSky]} style={styles.heroCard}>
             <Text style={styles.heroLabel}>Total Visitors (2025)</Text>
             <Text style={styles.heroValue}>{(stats.totalVisitors / 1000000).toFixed(1)}M</Text>
             <Text style={styles.heroSub}>+12.5% from previous year</Text>
@@ -103,7 +103,7 @@ export default function GovernmentDashboard() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { paddingHorizontal: Spacing.base, paddingBottom: 40 },
+  content: { paddingHorizontal: Spacing.base, paddingBottom: 100 },
   heroCard: { borderRadius: BorderRadius.xl, padding: Spacing.xl, alignItems: 'center', marginBottom: Spacing.lg },
   heroLabel: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: 'rgba(255,255,255,0.8)' },
   heroValue: { fontSize: 48, fontFamily: Typography.fonts.headingBold, color: '#FFFFFF', marginTop: Spacing.xs },

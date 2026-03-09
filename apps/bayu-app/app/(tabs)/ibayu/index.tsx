@@ -372,7 +372,7 @@ export default function IBayuScreen() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={[styles.container, { paddingTop: insets.top }]}>
         {/* Header */}
-        <LinearGradient colors={['#0891b2', '#06B6D4']} style={styles.header}>
+        <LinearGradient colors={[...Colors.gradients.sabahSky]} style={styles.header}>
           <View style={styles.headerContent}>
             <View style={styles.headerAvatar}>
               <Ionicons name="sparkles" size={20} color="#FFFFFF" />
@@ -440,7 +440,7 @@ export default function IBayuScreen() {
         </ScrollView>
 
         {/* Input */}
-        <View style={[styles.inputBar, { paddingBottom: insets.bottom + Spacing.sm }]}>
+        <View style={[styles.inputBar, { paddingBottom: insets.bottom + 80 }]}>
           <View style={styles.inputRow}>
             <TextInput
               style={styles.textInput}

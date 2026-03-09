@@ -16,7 +16,7 @@ import { CrowdLevel, SabahDestination } from '@/types';
 const crowdColors: Record<CrowdLevel, string> = {
   low: Colors.success,
   moderate: Colors.warning,
-  high: '#F97316',
+  high: Colors.sunset,
   'very-high': Colors.error,
 };
 
@@ -30,7 +30,7 @@ export default function DestinationScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.heroContainer}>
           <Image source={{ uri: dest.image }} style={styles.heroImage} contentFit="cover" />
           <LinearGradient colors={['rgba(0,0,0,0.3)', 'transparent', 'rgba(0,0,0,0.6)']} style={styles.heroOverlay} />
@@ -127,19 +127,32 @@ export default function DestinationScreen() {
           {dest.alternativeSpots && dest.alternativeSpots.length > 0 && (
             <View style={styles.altSection}>
               <Text style={styles.sectionLabel}>Also nearby</Text>
-              {dest.alternativeSpots.map((spot, i) => (
-                <TouchableOpacity key={i} style={styles.altSpot}>
-                  <Ionicons name="navigate" size={16} color={Colors.primary} />
-                  <Text style={styles.altSpotText}>{spot}</Text>
-                  <Ionicons name="chevron-forward" size={16} color={Colors.textTertiary} />
-                </TouchableOpacity>
-              ))}
+              {dest.alternativeSpots.map((spot, i) => {
+                const match = sabahDestinations.find((d) => d.name === spot);
+                return (
+                  <TouchableOpacity
+                    key={i}
+                    style={styles.altSpot}
+                    onPress={() => {
+                      if (match) {
+                        router.push({ pathname: '/(tabs)/home/destination/[id]', params: { id: match.id } });
+                      } else {
+                        router.push('/(tabs)/home/islands' as any);
+                      }
+                    }}
+                  >
+                    <Ionicons name="navigate" size={16} color={Colors.primary} />
+                    <Text style={styles.altSpotText}>{spot}</Text>
+                    <Ionicons name="chevron-forward" size={16} color={Colors.textTertiary} />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           )}
         </View>
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing.md }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 80 }]}>
         <View>
           <Text style={styles.footerPrice}>From {formatCurrency(dest.price)}</Text>
           <Text style={styles.footerPer}>per person</Text>
