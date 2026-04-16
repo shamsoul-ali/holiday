@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
@@ -11,6 +11,8 @@ import { Spacing, BorderRadius } from '@/constants/spacing';
 import { sabahDestinations, featuredDestinations } from '@/data';
 import { formatCurrency } from '@/utils';
 import { Button, Badge, StarRating, Card, SustainBadges, getDestinationBadges } from '@/components/ui';
+import { ARPreviewModal } from '@/components/ARPreviewModal';
+import { DestinationCompareModal } from '@/components/trip/DestinationCompareModal';
 import { CrowdLevel, SabahDestination } from '@/types';
 
 const crowdColors: Record<CrowdLevel, string> = {
@@ -24,6 +26,8 @@ export default function DestinationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [arVisible, setArVisible] = useState(false);
+  const [compareVisible, setCompareVisible] = useState(false);
 
   const dest = sabahDestinations.find((d) => d.id === id);
   if (!dest) return null;
@@ -37,11 +41,43 @@ export default function DestinationScreen() {
           <TouchableOpacity style={[styles.backBtn, { top: insets.top + Spacing.sm }]} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.arBtn, { top: insets.top + Spacing.sm }]}
+            onPress={() => setArVisible(true)}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={['#002B7F', '#096DBB'] as const}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.arBtnInner}
+            >
+              <Ionicons name="scan" size={14} color="#FDE68A" />
+              <Text style={styles.arBtnText}>AR Preview</Text>
+            </LinearGradient>
+          </TouchableOpacity>
           <View style={styles.heroContent}>
             <Text style={styles.heroTitle}>{dest.name}</Text>
             <Text style={styles.heroCountry}>{dest.district}, Sabah</Text>
           </View>
         </View>
+
+        <ARPreviewModal
+          visible={arVisible}
+          destination={dest}
+          onClose={() => setArVisible(false)}
+        />
+        <DestinationCompareModal
+          visible={compareVisible}
+          destinationId={dest.id}
+          onClose={() => setCompareVisible(false)}
+        />
+
+        <TouchableOpacity style={styles.compareBtn} onPress={() => setCompareVisible(true)}>
+          <Ionicons name="git-compare-outline" size={16} color={Colors.primary} />
+          <Text style={styles.compareText}>Compare with another destination</Text>
+          <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+        </TouchableOpacity>
 
         <View style={styles.body}>
           <View style={styles.statsRow}>
@@ -172,6 +208,11 @@ const styles = StyleSheet.create({
   heroImage: { width: '100%', height: '100%' },
   heroOverlay: { ...StyleSheet.absoluteFillObject },
   backBtn: { position: 'absolute', left: Spacing.base, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
+  arBtn: { position: 'absolute', right: Spacing.base, borderRadius: BorderRadius.full, overflow: 'hidden', shadowColor: '#002B7F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 8 },
+  arBtnInner: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderWidth: 1, borderColor: '#FDE68A' },
+  arBtnText: { color: '#FFFFFF', fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodySemiBold, letterSpacing: 0.5 },
+  compareBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, paddingHorizontal: Spacing.base, paddingVertical: Spacing.md, marginHorizontal: Spacing.base, marginTop: Spacing.md, backgroundColor: Colors.primary + '10', borderRadius: BorderRadius.lg, borderWidth: 1, borderColor: Colors.primary + '30' },
+  compareText: { flex: 1, fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodySemiBold, color: Colors.primary },
   heroContent: { position: 'absolute', bottom: Spacing.lg, left: Spacing.lg },
   heroTitle: { fontSize: Typography.sizes['2xl'], fontFamily: Typography.fonts.headingBold, color: '#FFFFFF' },
   heroCountry: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.body, color: 'rgba(255,255,255,0.8)' },

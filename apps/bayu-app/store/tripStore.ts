@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { TierType, TripPackage, Itinerary, WizardState } from '@/types';
-import { islandPackages, sabahDestinations, sabahEvents, getUpcomingEvents } from '@/data';
+import { islandPackages, sabahDestinations, sabahEvents, getUpcomingEvents, getPackagesForDestination, generateDestinationItinerary } from '@/data';
 import { getItineraryForDuration } from '@/data/itineraries';
 
 interface TripState {
@@ -141,24 +141,46 @@ export const useTripStore = create<TripState>((set, get) => ({
   generationMessage: '',
   generateTrip: async () => {
     set({ isGenerating: true });
-    const messages = buildGenerationMessages(get().wizard);
+    const { wizard } = get();
+    const messages = buildGenerationMessages(wizard);
     for (const msg of messages) {
       set({ generationMessage: msg });
       await new Promise((r) => setTimeout(r, 700));
     }
-    set({ isGenerating: false, packages: islandPackages });
+    // Destination-aware package selection
+    const pkgs = wizard.destination ? getPackagesForDestination(wizard.destination) : islandPackages;
+    set({ isGenerating: false, packages: pkgs });
   },
 
   packages: [],
   selectedPackage: null,
   selectPackage: (pkg) => {
     const { wizard } = get();
-    const itinerary = getItineraryForDuration(
-      wizard.duration,
-      wizard.destination ? `${wizard.destination}, Malaysia` : 'Sabah, Malaysia',
-      wizard.startDate || '2026-04-15',
-      wizard.departureCity,
-    );
+    const party = { adults: wizard.adults || 2, children: wizard.children || 0, infants: wizard.infants || 0 };
+
+    // Prefer destination-aware generator when we have a concrete destination
+    let itinerary: Itinerary | null = null;
+    if (wizard.destination) {
+      itinerary = generateDestinationItinerary(
+        wizard.destination,
+        wizard.duration,
+        wizard.startDate || '2026-04-15',
+        wizard.departureCity || 'Kuala Lumpur',
+        party,
+        pkg.id,
+      );
+    }
+
+    // Fallback to legacy multi-stop generator (AI-suggest path / unknown destination)
+    if (!itinerary) {
+      itinerary = getItineraryForDuration(
+        wizard.duration,
+        wizard.destination ? `${wizard.destination}, Sabah` : 'Sabah, Malaysia',
+        wizard.startDate || '2026-04-15',
+        wizard.departureCity,
+      );
+    }
+
     set({ selectedPackage: pkg, currentItinerary: itinerary });
   },
 

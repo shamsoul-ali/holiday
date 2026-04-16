@@ -237,10 +237,38 @@ export const sabahDestinations: SabahDestination[] = [
 ];
 
 export const featuredDestinations: SabahDestination[] = [
-  { ...sabahDestinations[0], id: 'sipadan-f', name: 'Sipadan Island', description: '3D2N Dive Paradise Package', tags: ['Top Rated', 'Permit Required'] },
-  { ...sabahDestinations[3], id: 'kinabalu-f', name: 'Mount Kinabalu', description: '2D1N Summit Expedition', tags: ['UNESCO', 'Must-Do'] },
-  { ...sabahDestinations[5], id: 'kinabatangan-f', name: 'Kinabatangan River', description: '3D2N Wildlife Safari Cruise', tags: ['Eco Pick', 'Family'] },
-  { ...sabahDestinations[7], id: 'danum-f', name: 'Danum Valley', description: '3D2N Rainforest Immersion', tags: ['Premium', 'Exclusive'] },
+  {
+    ...sabahDestinations[0],
+    id: 'sipadan-f',
+    name: 'Sipadan Island',
+    description: '3D2N Dive Paradise Package',
+    tags: ['Top Rated', 'Permit Required'],
+    image: 'https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=800',
+  },
+  {
+    ...sabahDestinations[3],
+    id: 'kinabalu-f',
+    name: 'Mount Kinabalu',
+    description: '2D1N Summit Expedition',
+    tags: ['UNESCO', 'Must-Do'],
+    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+  },
+  {
+    ...sabahDestinations[5],
+    id: 'kinabatangan-f',
+    name: 'Kinabatangan River',
+    description: '3D2N Wildlife Safari Cruise',
+    tags: ['Eco Pick', 'Family'],
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800',
+  },
+  {
+    ...sabahDestinations[7],
+    id: 'danum-f',
+    name: 'Danum Valley',
+    description: '3D2N Rainforest Immersion',
+    tags: ['Premium', 'Exclusive'],
+    image: 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800',
+  },
 ];
 
 export const allDestinations = sabahDestinations;

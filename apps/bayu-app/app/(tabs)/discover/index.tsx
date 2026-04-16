@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, FlatList, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -35,6 +36,7 @@ const severityColors: Record<string, string> = {
 };
 
 export default function DiscoverScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<TabType>('Food Map');
   const {
@@ -53,8 +55,36 @@ export default function DiscoverScreen() {
     ? agents
     : agents.filter((a) => a.type === selectedAgentType);
 
+  const HubCTA = ({ title, description, icon, gradient, onPress }: {
+    title: string;
+    description: string;
+    icon: string;
+    gradient: readonly [string, string] | readonly [string, string, string];
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={{ marginBottom: Spacing.md }}>
+      <LinearGradient colors={gradient as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hubCta}>
+        <View style={styles.hubCtaIcon}>
+          <Ionicons name={icon as any} size={22} color="#FFFFFF" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.hubCtaTitle}>{title}</Text>
+          <Text style={styles.hubCtaDesc}>{description}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+
   const renderFoodMap = () => (
     <Animated.View entering={FadeInDown.duration(400)}>
+      <HubCTA
+        title="Open Food Intelligence Hub"
+        description="Map view, peak hours, reviews & halal filters"
+        icon="restaurant"
+        gradient={Colors.gradients.sunsetGlow}
+        onPress={() => router.push('/(tabs)/home/food' as any)}
+      />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base, paddingVertical: Spacing.xs }}>
         {foodTags.map((tag) => (
           <TouchableOpacity
@@ -70,26 +100,32 @@ export default function DiscoverScreen() {
       </ScrollView>
 
       {filteredFoodSpots.map((spot) => (
-        <Card key={spot.id} style={styles.foodCard}>
-          <View style={styles.foodRow}>
-            <Image source={{ uri: spot.image }} style={styles.foodImage} contentFit="cover" />
-            <View style={styles.foodInfo}>
-              <Text style={styles.foodName}>{spot.name}</Text>
-              <Text style={styles.foodCuisine}>{spot.cuisine} {spot.priceRange}</Text>
-              <View style={styles.foodMeta}>
-                <StarRating rating={spot.rating} size={12} />
-                <Text style={styles.foodRating}>{spot.rating}</Text>
-                {spot.isHalal && <Badge label="Halal" color="#059669" size="sm" />}
-              </View>
-              <Text style={styles.foodPeak}>Peak: {spot.peakHours}</Text>
-              <View style={styles.foodTags}>
-                {spot.mustTry.slice(0, 2).map((item, i) => (
-                  <Badge key={i} label={item} color={Colors.primary + '15'} textColor={Colors.primary} size="sm" />
-                ))}
+        <TouchableOpacity
+          key={spot.id}
+          activeOpacity={0.9}
+          onPress={() => router.push({ pathname: '/(tabs)/home/food/[id]', params: { id: spot.id } } as any)}
+        >
+          <Card style={styles.foodCard}>
+            <View style={styles.foodRow}>
+              <Image source={{ uri: spot.image }} style={styles.foodImage} contentFit="cover" />
+              <View style={styles.foodInfo}>
+                <Text style={styles.foodName}>{spot.name}</Text>
+                <Text style={styles.foodCuisine}>{spot.cuisine} {spot.priceRange}</Text>
+                <View style={styles.foodMeta}>
+                  <StarRating rating={spot.rating} size={12} />
+                  <Text style={styles.foodRating}>{spot.rating}</Text>
+                  {spot.isHalal && <Badge label="Halal" color="#059669" size="sm" />}
+                </View>
+                <Text style={styles.foodPeak}>Peak: {spot.peakHours}</Text>
+                <View style={styles.foodTags}>
+                  {spot.mustTry.slice(0, 2).map((item, i) => (
+                    <Badge key={i} label={item} color={Colors.primary + '15'} textColor={Colors.primary} size="sm" />
+                  ))}
+                </View>
               </View>
             </View>
-          </View>
-        </Card>
+          </Card>
+        </TouchableOpacity>
       ))}
     </Animated.View>
   );
@@ -146,6 +182,13 @@ export default function DiscoverScreen() {
 
   const renderSafety = () => (
     <Animated.View entering={FadeInDown.duration(400)}>
+      <HubCTA
+        title="Open Safety Hub"
+        description="SOS, tide, weather, hospitals & embassies"
+        icon="shield-checkmark"
+        gradient={Colors.gradients.oceanDepth}
+        onPress={() => router.push('/(tabs)/home/safety-hub' as any)}
+      />
       <Text style={styles.subSectionTitle}>Active Alerts</Text>
       {alerts.filter((a) => a.active).map((alert) => (
         <Card key={alert.id} style={{ ...styles.alertCard, borderLeftWidth: 4, borderLeftColor: severityColors[alert.severity] }}>
@@ -308,6 +351,13 @@ export default function DiscoverScreen() {
     const unearnedBadges = badges.filter((b) => !b.earned);
     return (
       <Animated.View entering={FadeInDown.duration(400)}>
+        <HubCTA
+          title="Open Travel Pass"
+          description="Quests, leaderboard, redeem rewards & more"
+          icon="ribbon"
+          gradient={Colors.gradients.memberCard}
+          onPress={() => router.push('/(tabs)/profile/travel-pass' as any)}
+        />
         <LinearGradient colors={[...Colors.gradients.sabahSky]} style={styles.passCard}>
           <Text style={styles.passTitle}>Sabah Travel Pass</Text>
           <Text style={styles.passLevel}>Level {stats.level}</Text>
@@ -424,6 +474,33 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: Spacing.base, paddingBottom: 100 },
   subSectionTitle: { fontSize: Typography.sizes.md, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.md, marginTop: Spacing.sm },
 
+  hubCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    padding: Spacing.base,
+    borderRadius: BorderRadius.lg,
+    ...Shadows.md,
+  },
+  hubCtaIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hubCtaTitle: {
+    fontSize: Typography.sizes.base,
+    fontFamily: Typography.fonts.heading,
+    color: '#FFFFFF',
+  },
+  hubCtaDesc: {
+    fontSize: Typography.sizes.xs,
+    fontFamily: Typography.fonts.body,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
+  },
   chipScroll: { flexGrow: 0, marginBottom: Spacing.md, overflow: 'visible' },
   chip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },

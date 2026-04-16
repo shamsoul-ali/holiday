@@ -7,9 +7,11 @@ import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 import { useTripStore } from '@/store';
+import { sabahDestinations } from '@/data';
 import { formatCurrency, formatDateRange, formatDurationLabel } from '@/utils';
 import { Button, Card, Chip } from '@/components/ui';
 import { ScreenHeader } from '@/components/shared';
+import { EcoImpactCard } from '@/components/trip/EcoImpactCard';
 
 const addOns = [
   { id: 'wifi', label: 'Pocket WiFi', price: 50, icon: 'wifi' },
@@ -29,6 +31,11 @@ export default function ReviewScreen() {
     .filter((a) => selectedAddOns.includes(a.id))
     .reduce((sum, a) => sum + a.price, 0);
   const grandTotal = selectedPackage.price + addOnTotal;
+
+  const destination = currentItinerary.destinationId
+    ? sabahDestinations.find((d) => d.id === currentItinerary.destinationId)
+    : undefined;
+  const travelerCount = (currentItinerary.travelers.adults || 0) + (currentItinerary.travelers.children || 0) || 2;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -57,6 +64,11 @@ export default function ReviewScreen() {
           <View style={styles.row}><Text style={styles.label}>Taxes & Fees</Text><Text style={styles.value}>{formatCurrency(selectedPackage.priceBreakdown.taxes)}</Text></View>
           <View style={[styles.row, styles.totalRow]}><Text style={styles.totalLabel}>Package Total</Text><Text style={styles.totalValue}>{formatCurrency(selectedPackage.price)}</Text></View>
         </Card>
+
+        {/* Eco Impact — sustainability pitch piece */}
+        <View style={{ marginBottom: Spacing.md }}>
+          <EcoImpactCard package={selectedPackage} destination={destination} travelers={travelerCount} />
+        </View>
 
         {/* Add-ons */}
         <Card style={styles.summaryCard}>

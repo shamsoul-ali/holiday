@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Platform } from '
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Colors } from '@/constants/colors';
@@ -329,22 +330,75 @@ export default function ExploreScreen() {
                 <View style={styles.orLine} />
               </View>
 
-              {/* Manual destination list */}
-              {sabahDestinations.slice(0, 8).map((dest) => (
-                <TouchableOpacity
-                  key={dest.id}
-                  style={[styles.destOption, !wizard.useBayuSuggestion && wizard.destination === dest.name && styles.destSelected]}
-                  onPress={() => { hapticSelection(); updateWizard({ destination: dest.name, useBayuSuggestion: false, suggestedReasons: [] }); }}
-                >
-                  <View style={styles.destInfo}>
-                    <Text style={styles.destName}>{dest.name}, {dest.country}</Text>
-                    <Text style={styles.destDesc}>{dest.description}</Text>
+              {/* Manual destination list — grouped by district */}
+              {(() => {
+                const crowdColorMap: Record<string, string> = {
+                  low: Colors.success,
+                  moderate: Colors.warning,
+                  high: Colors.sunset,
+                  'very-high': Colors.error,
+                };
+                const crowdLabelMap: Record<string, string> = {
+                  low: 'Quiet',
+                  moderate: 'Steady',
+                  high: 'Busy',
+                  'very-high': 'Peak',
+                };
+                const groupOrder = ['Semporna', 'Ranau', 'Sandakan', 'Lahad Datu', 'Kudat', 'Kota Kinabalu'];
+                const grouped = sabahDestinations.reduce<Record<string, typeof sabahDestinations>>((acc, d) => {
+                  (acc[d.district] = acc[d.district] || []).push(d);
+                  return acc;
+                }, {});
+                const orderedDistricts = [
+                  ...groupOrder.filter((g) => grouped[g]),
+                  ...Object.keys(grouped).filter((g) => !groupOrder.includes(g)),
+                ];
+
+                return orderedDistricts.map((district) => (
+                  <View key={district} style={{ marginBottom: Spacing.base }}>
+                    <Text style={styles.districtHeader}>{district.toUpperCase()}</Text>
+                    {grouped[district].map((dest) => {
+                      const selected = !wizard.useBayuSuggestion && wizard.destination === dest.name;
+                      return (
+                        <TouchableOpacity
+                          key={dest.id}
+                          style={[styles.destCard, selected && styles.destCardSelected]}
+                          onPress={() => {
+                            hapticSelection();
+                            updateWizard({ destination: dest.name, useBayuSuggestion: false, suggestedReasons: [] });
+                          }}
+                          activeOpacity={0.9}
+                        >
+                          <Image source={{ uri: dest.image }} style={styles.destThumb} contentFit="cover" />
+                          <View style={styles.destCardBody}>
+                            <Text style={styles.destCardName}>{dest.name}</Text>
+                            <Text style={styles.destCardDesc} numberOfLines={2}>{dest.description}</Text>
+                            <View style={styles.destCardMeta}>
+                              <View style={styles.destMetaItem}>
+                                <View style={[styles.destCrowdDot, { backgroundColor: crowdColorMap[dest.crowdLevel] }]} />
+                                <Text style={styles.destMetaText}>{crowdLabelMap[dest.crowdLevel]}</Text>
+                              </View>
+                              <Text style={styles.destMetaDivider}>·</Text>
+                              <Text style={styles.destMetaText}>{dest.tags.length} activities</Text>
+                              {dest.permitRequired && (
+                                <>
+                                  <Text style={styles.destMetaDivider}>·</Text>
+                                  <Text style={[styles.destMetaText, { color: Colors.warning }]}>Permit</Text>
+                                </>
+                              )}
+                            </View>
+                          </View>
+                          {selected && (
+                            <View style={styles.destCheck}>
+                              <Ionicons name="checkmark-circle" size={22} color={Colors.primary} />
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  {!wizard.useBayuSuggestion && wizard.destination === dest.name && (
-                    <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
-                  )}
-                </TouchableOpacity>
-              ))}
+                ));
+              })()}
             </ScrollView>
           </Animated.View>
         );
@@ -507,6 +561,78 @@ const styles = StyleSheet.create({
   destInfo: { flex: 1 },
   destName: { fontSize: Typography.sizes.base, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
   destDesc: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textSecondary, marginTop: 2 },
+  districtHeader: {
+    fontSize: Typography.sizes.xs,
+    fontFamily: Typography.fonts.bodySemiBold,
+    color: Colors.textTertiary,
+    letterSpacing: 1.2,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+    marginLeft: Spacing.xs,
+  },
+  destCard: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    padding: Spacing.sm,
+    paddingRight: Spacing.base,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+    marginBottom: Spacing.sm,
+    alignItems: 'center',
+  },
+  destCardSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '08',
+  },
+  destThumb: {
+    width: 72,
+    height: 72,
+    borderRadius: BorderRadius.md,
+  },
+  destCardBody: { flex: 1, gap: 2 },
+  destCardName: {
+    fontSize: Typography.sizes.base,
+    fontFamily: Typography.fonts.heading,
+    color: Colors.text,
+  },
+  destCardDesc: {
+    fontSize: Typography.sizes.xs,
+    fontFamily: Typography.fonts.body,
+    color: Colors.textSecondary,
+    lineHeight: Typography.sizes.xs * 1.4,
+  },
+  destCardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
+  destMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  destCrowdDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  destMetaText: {
+    fontSize: Typography.sizes.xs,
+    fontFamily: Typography.fonts.bodyMedium,
+    color: Colors.textSecondary,
+  },
+  destMetaDivider: {
+    color: Colors.textTertiary,
+    fontSize: Typography.sizes.xs,
+  },
+  destCheck: {
+    width: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   durationRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
   durationChip: { paddingHorizontal: Spacing.base, paddingVertical: Spacing.md, borderRadius: BorderRadius.lg, borderWidth: 1.5, borderColor: Colors.border, backgroundColor: Colors.surface, alignItems: 'center', minWidth: 80 },
   durationChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primary + '10' },

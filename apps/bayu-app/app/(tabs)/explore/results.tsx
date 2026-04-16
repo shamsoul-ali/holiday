@@ -14,6 +14,7 @@ import { sabahEvents, sabahDestinations } from '@/data';
 import { formatCurrency, formatDurationLabel } from '@/utils';
 import { Button, Badge } from '@/components/ui';
 import { ScreenHeader } from '@/components/shared';
+import { DestinationHighlight } from '@/components/trip/DestinationHighlight';
 import { TripPackage, TierType, WizardState } from '@/types';
 
 const tierColors: Record<TierType, string> = { budget: Colors.budget, comfort: Colors.comfort, luxury: Colors.luxury };
@@ -50,6 +51,9 @@ export default function ResultsScreen() {
   const insets = useSafeAreaInsets();
   const { packages, selectPackage, wizard } = useTripStore();
   const reasons = getRecommendationReasons(wizard);
+  const destination = wizard.destination
+    ? sabahDestinations.find((d) => d.id === wizard.destination || d.name === wizard.destination)
+    : undefined;
 
   const handleSelect = (pkg: TripPackage) => {
     selectPackage(pkg);
@@ -74,7 +78,12 @@ export default function ResultsScreen() {
             <Text style={styles.contextText}>{contextParts}</Text>
           </View>
         )}
-        <Text style={styles.subtitle}>AI generated 3 options for you</Text>
+
+        {destination && <DestinationHighlight destination={destination} />}
+
+        <Text style={styles.subtitle}>
+          {destination ? `3 package tiers for ${destination.name}` : 'AI generated 3 options for you'}
+        </Text>
         {packages.map((pkg, index) => (
           <Animated.View key={pkg.id} entering={FadeInUp.delay(index * 200).duration(400)}>
             <TouchableOpacity style={[styles.packageCard, { borderColor: tierColors[pkg.tier] + '40' }]} activeOpacity={0.9} onPress={() => handleSelect(pkg)}>

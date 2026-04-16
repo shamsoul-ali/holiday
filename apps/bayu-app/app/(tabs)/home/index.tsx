@@ -10,14 +10,17 @@ import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { useAuthStore, useAppStore, useBookingStore } from '@/store';
-import { featuredDestinations, sabahDestinations, categories, featuredIslands, getUpcomingEvents, sabahItinerary } from '@/data';
+import { featuredDestinations, sabahDestinations, categories, featuredIslands, getUpcomingEvents } from '@/data';
 import { formatCurrency } from '@/utils';
 import { Badge } from '@/components/ui';
 import { IslandCard, EventCard } from '@/components/ui';
-import { UpcomingTripCard } from '@/components/UpcomingTripCard';
 import { TrendingNow } from '@/components/home/TrendingNow';
 import { LiveEventCard } from '@/components/home/LiveEventCard';
-import { SabahDestination, CrowdLevel } from '@/types';
+import { PartnershipStrip } from '@/components/home/PartnershipStrip';
+import { LiveContextBanner } from '@/components/home/LiveContextBanner';
+import { JourneyTrackerBanner } from '@/components/home/JourneyTrackerBanner';
+import { StoriesRow } from '@/components/home/StoriesRow';
+import { CrowdLevel } from '@/types';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.75;
@@ -67,6 +70,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </LinearGradient>
 
+      {/* Stories row — Today in Sabah */}
+      <StoriesRow />
+
+      {/* Live push-like context banner — rotating real-time signals */}
+      <LiveContextBanner />
+
       {/* Trending Now — live social proof ticker */}
       <TrendingNow />
 
@@ -75,26 +84,25 @@ export default function HomeScreen() {
         {[
           { icon: 'sparkles', label: 'AI Plan', color: Colors.primary, route: '/(tabs)/explore' },
           { icon: 'boat', label: 'Islands', color: Colors.sky, route: '/(tabs)/home/islands' },
-          { icon: 'restaurant', label: 'Food Map', color: Colors.sunset, route: '/(tabs)/discover' },
-          { icon: 'ribbon', label: 'My Pass', color: Colors.category.cultural, route: '/(tabs)/discover' },
+          { icon: 'restaurant', label: 'Food Map', color: Colors.sunset, route: '/(tabs)/home/food' },
+          { icon: 'ribbon', label: 'My Pass', color: Colors.category.cultural, route: '/(tabs)/profile/travel-pass' },
+          { icon: 'shield-checkmark', label: 'Safety', color: Colors.error, route: '/(tabs)/home/safety-hub' },
         ].map((action, i) => (
           <TouchableOpacity key={i} style={styles.quickAction} onPress={() => router.push(action.route as any)}>
             <View style={[styles.quickActionIcon, { backgroundColor: action.color + '15' }]}>
-              <Ionicons name={action.icon as any} size={24} color={action.color} />
+              <Ionicons name={action.icon as any} size={22} color={action.color} />
             </View>
             <Text style={styles.quickActionLabel}>{action.label}</Text>
           </TouchableOpacity>
         ))}
       </Animated.View>
 
-      {/* Upcoming Trip */}
+      {/* Journey tracker — adapts to pre-trip / in-progress / completed */}
       {upcomingBooking && (
-        <Animated.View entering={FadeInDown.delay(150).duration(500)} style={{ paddingHorizontal: Spacing.base }}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Upcoming Trip</Text>
-          </View>
-          <UpcomingTripCard booking={upcomingBooking} itinerary={sabahItinerary} onPress={() => router.push('/(tabs)/home/journey')} />
-        </Animated.View>
+        <JourneyTrackerBanner
+          booking={upcomingBooking}
+          onPress={() => router.push('/(tabs)/home/journey' as any)}
+        />
       )}
 
       {/* Featured Sabah */}
@@ -155,6 +163,9 @@ export default function HomeScreen() {
           )}
         />
       </Animated.View>
+
+      {/* Partnership strip — credibility anchor */}
+      <PartnershipStrip />
 
       {/* Upcoming Events with live countdowns */}
       <Animated.View entering={FadeInDown.delay(380).duration(500)}>

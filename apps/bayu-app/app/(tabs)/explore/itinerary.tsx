@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList, Alert, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,6 +50,23 @@ export default function ItineraryScreen() {
           <TouchableOpacity style={[styles.backBtn, { top: insets.top + Spacing.sm }]} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
+          <View style={[styles.heroTopRightRow, { top: insets.top + Spacing.sm }]}>
+            <View style={styles.offlinePill}>
+              <Ionicons name="cloud-done" size={11} color="#FFFFFF" />
+              <Text style={styles.offlinePillText}>Offline-ready</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.iconBtnSmall}
+              onPress={() =>
+                Share.share({
+                  title: selectedPackage.title,
+                  message: `Check out my Sabah trip: ${selectedPackage.title} — ${currentItinerary.destination} (${formatDateRange(currentItinerary.startDate, currentItinerary.endDate)}). Planned with Bayu.`,
+                }).catch(() => Alert.alert('Share', 'Share failed — try again.'))
+              }
+            >
+              <Ionicons name="share-outline" size={18} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
           <View style={styles.heroContent}>
             <Text style={styles.heroTitle}>{selectedPackage.title}</Text>
             <Text style={styles.heroSubtitle}>{currentItinerary.destination} - {formatDateRange(currentItinerary.startDate, currentItinerary.endDate)}</Text>
@@ -137,6 +154,10 @@ const styles = StyleSheet.create({
   heroImage: { width: '100%', height: '100%' },
   heroOverlay: { ...StyleSheet.absoluteFillObject },
   backBtn: { position: 'absolute', left: Spacing.base, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
+  heroTopRightRow: { position: 'absolute', right: Spacing.base, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  offlinePill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: Spacing.sm, paddingVertical: 5, backgroundColor: 'rgba(5,150,105,0.9)', borderRadius: BorderRadius.full },
+  offlinePillText: { fontSize: 10, fontFamily: Typography.fonts.bodySemiBold, color: '#FFFFFF', letterSpacing: 0.3 },
+  iconBtnSmall: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
   heroContent: { position: 'absolute', bottom: Spacing.lg, left: Spacing.lg, right: Spacing.lg },
   heroTitle: { fontSize: Typography.sizes.xl, fontFamily: Typography.fonts.headingBold, color: '#FFFFFF' },
   heroSubtitle: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: 'rgba(255,255,255,0.8)', marginTop: 2 },

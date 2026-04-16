@@ -93,6 +93,7 @@ export interface Itinerary {
   id: string;
   packageId: string;
   destination: string;
+  destinationId?: string;
   departureCity: string;
   startDate: string;
   endDate: string;
@@ -444,4 +445,114 @@ export interface SabahNews {
   category: string;
   image: string;
   source: string;
+}
+
+// ===== Safety Hub extras =====
+export type HospitalSpecialty = 'emergency' | 'general' | 'pediatric' | 'dive';
+
+export interface Hospital {
+  id: string;
+  name: string;
+  distanceKm: number;
+  specialty: HospitalSpecialty;
+  is24h: boolean;
+  phone: string;
+  location: string;
+  lat: number;
+  lng: number;
+}
+
+export interface Embassy {
+  id: string;
+  country: string;
+  flag: string;
+  phone: string;
+  address: string;
+  hoursLabel: string;
+}
+
+export interface TidePoint {
+  hour: number;
+  heightM: number;
+}
+
+export type WeatherIconKey = 'sun' | 'cloud' | 'rain' | 'storm' | 'partly';
+
+export interface WeatherDay {
+  day: string;
+  date: string;
+  iconKey: WeatherIconKey;
+  high: number;
+  low: number;
+  precipPct: number;
+  condition: string;
+}
+
+export interface AlertActionStep {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface AlertExtras {
+  actionSteps: AlertActionStep[];
+  updatedMinutesAgo: number;
+  affectedAreas: string[];
+  nextUpdateHours: number;
+  coordinates: { lat: number; lng: number };
+}
+
+// ===== Food Intelligence extras =====
+export interface FoodReview {
+  id: string;
+  name: string;
+  rating: number;
+  text: string;
+  date: string;
+  avatarHue: number;
+}
+
+export type FoodRegion = 'KK' | 'Semporna' | 'Kundasang' | 'Beaufort';
+
+export interface FoodCoordinate {
+  x: number;
+  y: number;
+  region: FoodRegion;
+}
+
+// ===== Travel Pass extras =====
+export interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  progress: number;
+  target: number;
+  rewardPoints: number;
+  icon: string;
+  expiryHours: number;
+  color: string;
+}
+
+export interface LeaderboardUser {
+  id: string;
+  name: string;
+  avatarHue: number;
+  points: number;
+  level: number;
+  districts: number;
+  isYou?: boolean;
+}
+
+export type RewardCategory = 'discount' | 'pass' | 'upgrade' | 'credit';
+
+export interface Reward {
+  id: string;
+  title: string;
+  partnerName: string;
+  pointsCost: number;
+  icon: string;
+  category: RewardCategory;
+  expiresLabel: string;
+  valueLabel: string;
 }

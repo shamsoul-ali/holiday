@@ -10,6 +10,7 @@ import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { useAuthStore, useGamificationStore } from '@/store';
 import { mockWallet } from '@/data';
 import { Card } from '@/components/ui';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function ProfileScreen() {
     {
       title: 'Sabah',
       items: [
-        { icon: 'ribbon-outline', label: 'Travel Pass', route: '/(tabs)/discover' as any },
+        { icon: 'ribbon-outline', label: 'Travel Pass', route: '/(tabs)/profile/travel-pass' as any },
         { icon: 'bar-chart-outline', label: 'Tourism Dashboard (B2B)', route: '/(tabs)/profile/government' },
       ],
     },
@@ -70,19 +71,33 @@ export default function ProfileScreen() {
 
       {/* Stats Grid */}
       <View style={styles.statsRow}>
-        {profileStats.map((stat, i) => (
-          <Card key={i} style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: stat.color + '15' }]}>
-              <Ionicons name={stat.icon as any} size={20} color={stat.color} />
-            </View>
-            <Text style={styles.statValue}>{stat.value}</Text>
-            <Text style={styles.statLabel}>{stat.label}</Text>
-          </Card>
-        ))}
+        {profileStats.map((stat, i) => {
+          const tappable = stat.label === 'Districts' || stat.label === 'Badges';
+          return (
+            <TouchableOpacity
+              key={i}
+              activeOpacity={tappable ? 0.8 : 1}
+              onPress={() => tappable && router.push('/(tabs)/profile/travel-pass' as any)}
+              style={{ flex: 1 }}
+            >
+              <Card style={styles.statCard}>
+                <View style={[styles.statIcon, { backgroundColor: stat.color + '15' }]}>
+                  <Ionicons name={stat.icon as any} size={20} color={stat.color} />
+                </View>
+                <Text style={styles.statValue}>{stat.value}</Text>
+                <Text style={styles.statLabel}>{stat.label}</Text>
+              </Card>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* Membership Card */}
-      <View style={styles.memberCardWrapper}>
+      <TouchableOpacity
+        activeOpacity={0.92}
+        onPress={() => router.push('/(tabs)/profile/travel-pass' as any)}
+        style={styles.memberCardWrapper}
+      >
         <LinearGradient
           colors={[...Colors.gradients.memberCard]}
           start={{ x: 0, y: 0 }}
@@ -141,6 +156,11 @@ export default function ProfileScreen() {
             <Text style={styles.cardProgressText}>{stats.points.toLocaleString()}/{stats.nextLevelPoints.toLocaleString()} pts to Level {stats.level + 1}</Text>
           </View>
         </LinearGradient>
+      </TouchableOpacity>
+
+      {/* Language Switcher — ASEAN readiness */}
+      <View style={{ paddingHorizontal: Spacing.base, marginBottom: Spacing.md }}>
+        <LanguageSwitcher />
       </View>
 
       {/* Menu Sections */}

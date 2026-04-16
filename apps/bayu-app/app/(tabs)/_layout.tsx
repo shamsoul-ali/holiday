@@ -8,6 +8,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { FloatingIBayuButton } from '@/components/FloatingIBayuButton';
 
 function TabBarBadge({ count }: { count: number }) {
   if (count === 0) return null;
@@ -89,17 +90,20 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
 export default function TabLayout() {
   return (
-    <Tabs
-      tabBar={(props) => <FloatingTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tabs.Screen name="home" />
-      <Tabs.Screen name="explore" />
-      <Tabs.Screen name="ibayu" />
-      <Tabs.Screen name="bookings" />
-      <Tabs.Screen name="discover" />
-      <Tabs.Screen name="profile" />
-    </Tabs>
+    <>
+      <Tabs
+        tabBar={(props) => <FloatingTabBar {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
+        <Tabs.Screen name="home" />
+        <Tabs.Screen name="explore" />
+        <Tabs.Screen name="ibayu" />
+        <Tabs.Screen name="bookings" />
+        <Tabs.Screen name="discover" />
+        <Tabs.Screen name="profile" />
+      </Tabs>
+      <FloatingIBayuButton />
+    </>
   );
 }
 
