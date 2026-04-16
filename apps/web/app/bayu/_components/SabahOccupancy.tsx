@@ -28,22 +28,31 @@ function occupancyColor(pct: number) {
 }
 
 // --- Overlay markers in rendered SVG coords (y already includes translate) ---
-// Positions eyeballed against the 25 district polygon centroids so north (Kudat)
-// is at top, west coast on left. Tweakable.
+// Positions aligned against district polygon centroids:
+//   KK (d21)       at (219, 317)  → BKI just SW
+//   Sandakan (d8)  at (543, 326)
+//   Tawau (d5)     at (486, 563)
+//   Lahad Datu (d3)at (616, 466)
+//   Kudat (d13)    at (380, 153)
+//   Semporna (d19) at (630, 563)  → Sipadan / Mabul further SE
 const AIRPORTS = [
-  { code: 'BKI', name: 'Kota Kinabalu Intl',   cx: 180, cy: 370, pax: '9.3M/yr', primary: true },
-  { code: 'SDK', name: 'Sandakan',             cx: 580, cy: 310, pax: '1.2M/yr' },
-  { code: 'TWU', name: 'Tawau',                cx: 555, cy: 590, pax: '1.0M/yr' },
-  { code: 'LDU', name: 'Lahad Datu',           cx: 670, cy: 500, pax: '284k/yr' },
-  { code: 'KUD', name: 'Kudat',                cx: 375, cy: 150, pax: 'domestic' },
+  { code: 'BKI', name: 'Kota Kinabalu Intl',   cx: 205, cy: 330, pax: '9.3M/yr', primary: true,  anchor: 'kk' },
+  { code: 'SDK', name: 'Sandakan',             cx: 545, cy: 322, pax: '1.2M/yr',                 anchor: 'sandakan' },
+  { code: 'TWU', name: 'Tawau',                cx: 486, cy: 560, pax: '1.0M/yr',                 anchor: 'tawau' },
+  { code: 'LDU', name: 'Lahad Datu',           cx: 610, cy: 464, pax: '284k/yr',                 anchor: 'lahaddatu' },
+  { code: 'KUD', name: 'Kudat',                cx: 380, cy: 153, pax: 'domestic',                anchor: 'kudat' },
 ];
 
 const ISLANDS = [
-  { id: 'sipadan',  name: 'Sipadan',      cx: 735, cy: 580, feat: 'World #1 dive' },
-  { id: 'mabul',    name: 'Mabul',        cx: 710, cy: 570, feat: 'Macro diving'  },
-  { id: 'banggi',   name: 'Banggi',       cx: 420, cy:  95, feat: 'Largest island' },
-  { id: 'layang',   name: 'Layang-Layang',cx:  50, cy: 230, feat: 'Atoll · remote' },
+  { id: 'sipadan',  name: 'Sipadan',       cx: 700, cy: 618, feat: 'World #1 dive' },
+  { id: 'mabul',    name: 'Mabul',         cx: 675, cy: 608, feat: 'Macro diving'  },
+  { id: 'banggi',   name: 'Banggi',        cx: 420, cy:  80, feat: 'Largest island' },
+  { id: 'layang',   name: 'Layang-Layang', cx:  55, cy: 210, feat: 'Atoll · remote' },
 ];
+
+// Districts whose name/label is already shown via an airport marker — skip
+// drawing the polygon label here to avoid double-labeling.
+const AIRPORT_ANCHORED = new Set(AIRPORTS.map((a) => a.anchor));
 
 // Hand-mapped: each polygon id → district id (from stats.hotels.districts).
 // 32 polygons = 26 Sabah districts (#aaaaff + #5555ff highlights) + a few small
@@ -185,10 +194,13 @@ export function SabahOccupancy() {
                 })}
               </g>
 
-              {/* District name labels (so KK, Sandakan etc are obvious) */}
+              {/* District name labels — skip anything anchored by an airport marker
+                  or smaller than a floor so we don't pile text on tiny polygons. */}
               <g style={{ pointerEvents: 'none' }}>
                 {paired.map((p) => {
                   if (!p.data) return null;
+                  if (AIRPORT_ANCHORED.has(p.data.id)) return null;
+                  if (p.geo.area < 2500) return null;
                   const occupancy = p.data.occupancy;
                   const offset = LABEL_OFFSETS[p.geo.id] ?? { dx: 0, dy: 0 };
                   const lx = p.geo.cx + offset.dx;

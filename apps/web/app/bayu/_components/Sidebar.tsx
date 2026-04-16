@@ -39,7 +39,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="relative flex h-screen w-[260px] shrink-0 flex-col border-r border-bayu-line bg-bayu-bg1/90 backdrop-blur">
+    <aside className="sticky top-0 flex h-screen w-[260px] shrink-0 flex-col border-r border-bayu-line bg-bayu-bg1/90 backdrop-blur">
       {/* Brand */}
       <div className="flex items-center gap-3 px-5 py-5">
         <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-bayu-ocean to-bayu-sky shadow-md shadow-bayu-ocean/40">

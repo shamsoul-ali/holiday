@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Search, Bell, Download, Share2, ChevronDown, Calendar, Check } from 'lucide-react';
+import { Search, Bell, Download, Share2, ChevronDown, Calendar, Check, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDateRange, RANGES } from './DateRangeContext';
+import { useTheme } from './ThemeProvider';
 
 export function TopBar({ title }: { title: string; subtitle?: string }) {
   const [time, setTime] = useState('');
   const [rangeOpen, setRangeOpen] = useState(false);
   const { range, meta, setRange } = useDateRange();
+  const { theme, toggle: toggleTheme, mounted } = useTheme();
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -119,6 +121,16 @@ export function TopBar({ title }: { title: string; subtitle?: string }) {
       <button className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-bayu-ocean to-bayu-sky px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-bayu-ocean/30 transition hover:shadow-bayu-ocean/50">
         <Share2 className="h-4 w-4" />
         <span>Share Report</span>
+      </button>
+
+      {/* Theme toggle */}
+      <button
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
+        className="flex h-9 w-9 items-center justify-center rounded-lg border border-bayu-line bg-bayu-bg1/70 text-bayu-textMuted transition hover:bg-bayu-bg2 hover:text-bayu-text"
+      >
+        {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </button>
 
       {/* Notifications */}

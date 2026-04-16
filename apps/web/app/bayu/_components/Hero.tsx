@@ -19,15 +19,15 @@ export function Hero() {
       transition={{ duration: 0.6 }}
       className="relative overflow-hidden rounded-2xl border border-bayu-line bg-bayu-bg1"
     >
-      {/* Gradient bg */}
+      {/* Gradient bg — theme-aware via bayu-bg1/bg2 as base, same accent glows */}
       <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-bayu-bg1 to-bayu-bg2" />
         <div
           className="absolute inset-0 opacity-90"
           style={{
             background:
-              'radial-gradient(1200px 400px at 10% 10%, rgba(9, 109, 187, 0.38), transparent 60%),' +
-              'radial-gradient(800px 350px at 90% 90%, rgba(247, 183, 49, 0.18), transparent 60%),' +
-              'linear-gradient(135deg, #0B1A30 0%, #12253F 100%)',
+              'radial-gradient(1200px 400px at 10% 10%, rgba(9, 109, 187, 0.28), transparent 60%),' +
+              'radial-gradient(800px 350px at 90% 90%, rgba(247, 183, 49, 0.14), transparent 60%)',
           }}
         />
         <div

@@ -5,6 +5,7 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -70,6 +71,7 @@ module.exports = {
           black: '#111827',
         },
         // Bayu — Sabah Tourism Command Center
+        // Accents are fixed; surfaces/text use CSS vars so they switch with theme.
         bayu: {
           navy: '#002B7F',
           ocean: '#096DBB',
@@ -80,16 +82,16 @@ module.exports = {
           goldlight: '#FFD97A',
           jungle: '#059669',
           coral: '#F5362F',
-          // command-center dark tokens
-          bg0: '#070F1E',
-          bg1: '#0B1A30',
-          bg2: '#12253F',
-          bg3: '#1A3053',
-          line: '#1F3A5F',
-          line2: '#2A4F7D',
-          text: '#E6EEF7',
-          textMuted: '#8FA3B8',
-          textDim: '#5A7394',
+          // Theme-aware surface + text (driven by CSS vars in bayu/theme.css)
+          bg0:       'rgb(var(--bayu-bg0) / <alpha-value>)',
+          bg1:       'rgb(var(--bayu-bg1) / <alpha-value>)',
+          bg2:       'rgb(var(--bayu-bg2) / <alpha-value>)',
+          bg3:       'rgb(var(--bayu-bg3) / <alpha-value>)',
+          line:      'rgb(var(--bayu-line) / <alpha-value>)',
+          line2:     'rgb(var(--bayu-line2) / <alpha-value>)',
+          text:      'rgb(var(--bayu-text) / <alpha-value>)',
+          textMuted: 'rgb(var(--bayu-text-muted) / <alpha-value>)',
+          textDim:   'rgb(var(--bayu-text-dim) / <alpha-value>)',
         },
       },
       fontFamily: {

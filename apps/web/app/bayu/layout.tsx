@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import './theme.css';
+import { ThemeProvider } from './_components/ThemeProvider';
 
 export const metadata: Metadata = {
   title: 'Bayu · Sabah Tourism Command Center',
@@ -9,8 +11,10 @@ export const metadata: Metadata = {
 // sidebar + topbar, while `/bayu/login` renders on a clean canvas.
 export default function BayuRootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-bayu-bg0 font-sans text-bayu-text antialiased">
-      {children}
-    </div>
+    <ThemeProvider>
+      <div className="min-h-screen bg-bayu-bg0 font-sans text-bayu-text antialiased transition-colors">
+        {children}
+      </div>
+    </ThemeProvider>
   );
 }
