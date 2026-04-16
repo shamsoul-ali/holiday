@@ -10,7 +10,7 @@ import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius } from '@/constants/spacing';
 import { sabahDestinations, featuredDestinations } from '@/data';
 import { formatCurrency } from '@/utils';
-import { Button, Badge, StarRating, Card } from '@/components/ui';
+import { Button, Badge, StarRating, Card, SustainBadges, getDestinationBadges } from '@/components/ui';
 import { CrowdLevel, SabahDestination } from '@/types';
 
 const crowdColors: Record<CrowdLevel, string> = {
@@ -62,6 +62,9 @@ export default function DestinationScreen() {
               <Badge key={i} label={tag} color={Colors.primary + '15'} textColor={Colors.primary} size="md" />
             ))}
           </View>
+
+          <Text style={styles.sectionLabel}>Sustainability</Text>
+          <SustainBadges badges={getDestinationBadges(dest)} size="md" max={5} style={{ marginBottom: Spacing.lg }} />
 
           {/* Sabah-specific info */}
           <View style={styles.infoGrid}>

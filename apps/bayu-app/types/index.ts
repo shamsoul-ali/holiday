@@ -290,10 +290,74 @@ export interface TravelBadge {
 
 export interface GovernmentStats {
   totalVisitors: number;
-  monthlyTrend: { month: string; visitors: number }[];
-  topDistricts: { name: string; visitors: number; percentage: number }[];
-  sustainabilityScore: number;
+  totalVisitorsYoY: number;
   revenue: number;
+  revenueYoY: number;
+  avgSpendPerVisitor: number;
+  avgStayDays: number;
+  sustainabilityScore: number;
+  liveVisitorsToday: number;
+  liveVisitorsRate: number;
+  monthlyTrend: { month: string; visitors: number; revenue: number }[];
+  topDistricts: { name: string; visitors: number; percentage: number; growth: number }[];
+  domesticOrigins: { stateCode: string; name: string; visitors: number }[];
+  internationalOrigins: InternationalOrigin[];
+  flightPaths: FlightPath[];
+  revenueBySector: { sector: string; amount: number; percentage: number; color: string }[];
+  sustainability: {
+    carbonOffsetTonnes: number;
+    reefProtectedHectares: number;
+    localJobsCreated: number;
+    ecoCertifiedOperators: number;
+    wasteReduction: number;
+    plasticFreeIslands: number;
+  };
+  liveBookings: LiveBooking[];
+  peakSeasonGrid: { month: string; categories: Record<string, number> }[];
+  sourceMarkets: SourceMarket[];
+}
+
+export interface InternationalOrigin {
+  id: string;
+  country: string;
+  city: string;
+  flag: string;
+  visitors: number;
+  growth: number;
+  avgSpend: number;
+  x: number;
+  y: number;
+}
+
+export interface FlightPath {
+  id: string;
+  originId: string;
+  originLabel: string;
+  flag: string;
+  x0: number;
+  y0: number;
+  visitors: number;
+  flightsPerWeek: number;
+}
+
+export interface LiveBooking {
+  id: string;
+  name: string;
+  from: string;
+  flag: string;
+  package: string;
+  amount: number;
+  minutesAgo: number;
+  tier: 'budget' | 'comfort' | 'luxury';
+}
+
+export interface SourceMarket {
+  id: string;
+  country: string;
+  flag: string;
+  visitors: number;
+  growth: number;
+  avgSpend: number;
 }
 
 // Journey simulation types

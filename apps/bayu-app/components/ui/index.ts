@@ -9,3 +9,5 @@ export { StarRating } from './StarRating';
 export { ProgressBar } from './ProgressBar';
 export { IslandCard } from './IslandCard';
 export { EventCard } from './EventCard';
+export { SustainBadges, getDestinationBadges, getIslandBadges } from './SustainBadges';
+export type { SustainBadgeKey } from './SustainBadges';

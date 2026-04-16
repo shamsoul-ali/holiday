@@ -6,6 +6,7 @@ import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { Badge } from './Badge';
+import { SustainBadges, getIslandBadges } from './SustainBadges';
 import { SabahIsland } from '@/types';
 
 interface IslandCardProps {
@@ -64,6 +65,7 @@ export const IslandCard: React.FC<IslandCardProps> = ({ island, onPress, compact
             </View>
           ))}
         </View>
+        <SustainBadges badges={getIslandBadges(island)} size="xs" max={4} style={{ marginBottom: Spacing.sm }} />
         <View style={styles.metaRow}>
           <Text style={styles.difficulty}>
             {island.difficulty === 'easy' ? 'Easy Access' : island.difficulty === 'moderate' ? 'Moderate' : 'Advanced'}

@@ -15,6 +15,8 @@ import { formatCurrency } from '@/utils';
 import { Badge } from '@/components/ui';
 import { IslandCard, EventCard } from '@/components/ui';
 import { UpcomingTripCard } from '@/components/UpcomingTripCard';
+import { TrendingNow } from '@/components/home/TrendingNow';
+import { LiveEventCard } from '@/components/home/LiveEventCard';
 import { SabahDestination, CrowdLevel } from '@/types';
 
 const { width } = Dimensions.get('window');
@@ -64,6 +66,9 @@ export default function HomeScreen() {
           <Text style={styles.searchPlaceholder}>Search islands, mountains, wildlife...</Text>
         </TouchableOpacity>
       </LinearGradient>
+
+      {/* Trending Now — live social proof ticker */}
+      <TrendingNow />
 
       {/* Quick Actions */}
       <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.quickActions}>
@@ -151,19 +156,20 @@ export default function HomeScreen() {
         />
       </Animated.View>
 
-      {/* Upcoming Events */}
+      {/* Upcoming Events with live countdowns */}
       <Animated.View entering={FadeInDown.delay(380).duration(500)}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Events</Text>
+          <Text style={styles.sectionTitle}>Events Countdown</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/discover' as any)}><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
         </View>
         <FlatList
           horizontal
-          data={getUpcomingEvents().slice(0, 4)}
+          data={getUpcomingEvents().slice(0, 5)}
           keyExtractor={(item) => item.id}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: Spacing.base }}
           renderItem={({ item }) => (
-            <EventCard event={item} compact onPress={() => router.push('/(tabs)/discover' as any)} />
+            <LiveEventCard event={item} onPress={() => router.push('/(tabs)/discover' as any)} />
           )}
         />
       </Animated.View>
