@@ -68,7 +68,29 @@ module.exports = {
           gold: '#d97706',
           white: '#ffffff',
           black: '#111827',
-        }
+        },
+        // Bayu — Sabah Tourism Command Center
+        bayu: {
+          navy: '#002B7F',
+          ocean: '#096DBB',
+          sky: '#2EAFE8',
+          skylight: '#7BC4E8',
+          reef: '#00BCD4',
+          gold: '#F7B731',
+          goldlight: '#FFD97A',
+          jungle: '#059669',
+          coral: '#F5362F',
+          // command-center dark tokens
+          bg0: '#070F1E',
+          bg1: '#0B1A30',
+          bg2: '#12253F',
+          bg3: '#1A3053',
+          line: '#1F3A5F',
+          line2: '#2A4F7D',
+          text: '#E6EEF7',
+          textMuted: '#8FA3B8',
+          textDim: '#5A7394',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -78,6 +100,8 @@ module.exports = {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
         'bounce-gentle': 'bounceGentle 2s infinite',
+        'bayu-pulse': 'bayuPulse 1.6s ease-out infinite',
+        'bayu-dash': 'bayuDash 1.4s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -91,6 +115,14 @@ module.exports = {
         bounceGentle: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-5px)' },
+        },
+        bayuPulse: {
+          '0%':   { transform: 'scale(1)',   opacity: '0.7' },
+          '100%': { transform: 'scale(3.2)', opacity: '0' },
+        },
+        bayuDash: {
+          '0%':   { strokeDashoffset: '0' },
+          '100%': { strokeDashoffset: '-32' },
         },
       },
       backgroundImage: {
