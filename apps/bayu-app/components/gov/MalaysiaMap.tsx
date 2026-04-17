@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 import Svg, { Path, Circle, G, Defs, RadialGradient, Stop, Text as SvgText, LinearGradient as SvgLinearGradient } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -140,7 +141,10 @@ interface Props {
 }
 
 export const MalaysiaMap: React.FC<Props> = ({ onStateSelect }) => {
+  const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
+
+  const goToSabahMap = () => router.push('/(tabs)/home/sabah-map' as any);
 
   const maxOrigin = useMemo(
     () => Math.max(...governmentStats.domesticOrigins.map((o) => o.visitors)),
@@ -212,18 +216,32 @@ export const MalaysiaMap: React.FC<Props> = ({ onStateSelect }) => {
           ))}
         </G>
 
-        {/* BKI destination */}
-        <DestinationPulse cx={BKI_COORDS.x} cy={BKI_COORDS.y} />
-        <SvgText
-          x={BKI_COORDS.x}
-          y={BKI_COORDS.y - 20}
-          fontSize={13}
-          fontWeight="700"
-          fill="#002B7F"
-          textAnchor="middle"
-        >
-          🏝️ Sabah · BKI
-        </SvgText>
+        {/* BKI destination — tappable to drill into Sabah district map */}
+        <G onPress={goToSabahMap}>
+          <DestinationPulse cx={BKI_COORDS.x} cy={BKI_COORDS.y} />
+          <Circle cx={BKI_COORDS.x} cy={BKI_COORDS.y} r={44} fill="transparent" />
+          <SvgText
+            x={BKI_COORDS.x}
+            y={BKI_COORDS.y - 20}
+            fontSize={13}
+            fontWeight="700"
+            fill="#002B7F"
+            textAnchor="middle"
+          >
+            🏝️ Sabah · BKI
+          </SvgText>
+          <SvgText
+            x={BKI_COORDS.x}
+            y={BKI_COORDS.y + 28}
+            fontSize={9}
+            fontWeight="600"
+            fill="#002B7F"
+            textAnchor="middle"
+            opacity={0.7}
+          >
+            Tap to drill in ↓
+          </SvgText>
+        </G>
       </Svg>
 
       {/* Legend overlay */}

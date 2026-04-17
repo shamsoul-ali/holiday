@@ -17,6 +17,7 @@ import { IslandCard, EventCard } from '@/components/ui';
 import { TrendingNow } from '@/components/home/TrendingNow';
 import { LiveEventCard } from '@/components/home/LiveEventCard';
 import { PartnershipStrip } from '@/components/home/PartnershipStrip';
+import { SabahMapTeaser } from '@/components/home/SabahMapTeaser';
 import { LiveContextBanner } from '@/components/home/LiveContextBanner';
 import { JourneyTrackerBanner } from '@/components/home/JourneyTrackerBanner';
 import { StoriesRow } from '@/components/home/StoriesRow';
@@ -163,6 +164,9 @@ export default function HomeScreen() {
           )}
         />
       </Animated.View>
+
+      {/* Sabah interactive map teaser — spatial intelligence story */}
+      <SabahMapTeaser />
 
       {/* Partnership strip — credibility anchor */}
       <PartnershipStrip />

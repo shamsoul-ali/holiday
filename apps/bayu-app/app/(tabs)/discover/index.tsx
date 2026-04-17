@@ -11,11 +11,22 @@ import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { useDiscoverStore, useGamificationStore } from '@/store';
 import { Badge, Card, StarRating, EventCard } from '@/components/ui';
-import { sabahEvents, sabahNews } from '@/data';
+import { sabahEvents, sabahNews, sabahHotelStats } from '@/data';
 import { getRelativeTime } from '@/utils';
+import { SabahMap, MapMode } from '@/components/SabahMap';
+import { SabahMapSheet } from '@/components/SabahMapSheet';
 
-const tabs = ['Food Map', 'Marketplace', 'Safety', 'Muslim', 'Events', 'News', 'Badges'] as const;
+const tabs = ['Map', 'Food Map', 'Marketplace', 'Safety', 'Muslim', 'Events', 'News', 'Badges'] as const;
 type TabType = typeof tabs[number];
+
+const mapModes: { id: MapMode; label: string; icon: string; color: string }[] = [
+  { id: 'occupancy', label: 'Hotels', icon: 'bed', color: '#F7B731' },
+  { id: 'food',      label: 'Food',   icon: 'restaurant', color: '#F7B731' },
+  { id: 'islands',   label: 'Islands',icon: 'boat', color: '#2EAFE8' },
+  { id: 'activity',  label: 'Events', icon: 'calendar', color: '#059669' },
+  { id: 'crowd',     label: 'Crowd',  icon: 'people', color: '#2EAFE8' },
+  { id: 'safety',    label: 'Safety', icon: 'shield-checkmark', color: '#F5362F' },
+];
 
 const foodTags = ['all', 'tourist-friendly', 'muslim-friendly', 'viral-spot', 'local-gem'] as const;
 const agentTypes = ['all', 'dive-center', 'guide', 'tour-operator', 'transport', 'homestay', 'cultural-guide'] as const;
@@ -38,7 +49,10 @@ const severityColors: Record<string, string> = {
 export default function DiscoverScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<TabType>('Food Map');
+  const [activeTab, setActiveTab] = useState<TabType>('Map');
+  const [mapMode, setMapMode] = useState<MapMode>('occupancy');
+  const [selectedMapDistrict, setSelectedMapDistrict] = useState<string | null>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
   const {
     prayerTimes, restaurants, hijriDate, selectedCity, qiblaDirection,
     foodSpots, selectedFoodTag, setFoodTag,
@@ -75,6 +89,103 @@ export default function DiscoverScreen() {
       </LinearGradient>
     </TouchableOpacity>
   );
+
+  const renderSabahMap = () => {
+    const currentMode = mapModes.find((m) => m.id === mapMode)!;
+    const legendByMode: Record<MapMode, { label: string; stops: { color: string; label: string }[] }> = {
+      occupancy: {
+        label: `Hotel occupancy · ${sabahHotelStats.avgOccupancy}% avg · ${sabahHotelStats.totalRooms.toLocaleString()} rooms`,
+        stops: [
+          { color: '#12253F', label: '<50%' },
+          { color: '#2EAFE8', label: '50-80%' },
+          { color: '#F7B731', label: '80-90%' },
+          { color: '#F5362F', label: '>90%' },
+        ],
+      },
+      crowd: {
+        label: 'Tourist crowd level (current)',
+        stops: [
+          { color: '#1F4466', label: 'Quiet' },
+          { color: '#2EAFE8', label: 'Steady' },
+          { color: '#F7B731', label: 'Busy' },
+          { color: '#F5362F', label: 'Peak' },
+        ],
+      },
+      food: { label: 'Food spots per district', stops: [{ color: '#12253F', label: 'None' }, { color: '#2EAFE8', label: '1' }, { color: '#F7B731', label: '2-3' }, { color: '#F5362F', label: '4+' }] },
+      islands: { label: 'Islands per district', stops: [{ color: '#12253F', label: 'None' }, { color: '#2EAFE8', label: '1-3' }, { color: '#F7B731', label: '4-6' }, { color: '#F5362F', label: '7+' }] },
+      activity: { label: 'Events + festivals per district', stops: [{ color: '#12253F', label: 'None' }, { color: '#2EAFE8', label: '1' }, { color: '#F7B731', label: '2' }, { color: '#F5362F', label: '3+' }] },
+      safety: { label: 'Active safety alerts', stops: [{ color: '#12253F', label: 'None' }, { color: '#F7B731', label: '1' }, { color: '#F5362F', label: '2+' }] },
+      plain: { label: 'Sabah districts', stops: [] },
+    };
+    const legend = legendByMode[mapMode];
+
+    return (
+      <Animated.View entering={FadeInDown.duration(400)}>
+        {/* Mode chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: Spacing.xs, paddingRight: Spacing.base, paddingVertical: Spacing.xs }}
+          style={styles.chipScroll}
+        >
+          {mapModes.map((m) => {
+            const active = mapMode === m.id;
+            return (
+              <TouchableOpacity
+                key={m.id}
+                style={[styles.mapModeChip, active && { backgroundColor: m.color, borderColor: m.color }]}
+                onPress={() => setMapMode(m.id)}
+                activeOpacity={0.85}
+              >
+                <Ionicons name={m.icon as any} size={12} color={active ? '#FFFFFF' : m.color} />
+                <Text style={[styles.mapModeChipText, active && { color: '#FFFFFF' }]}>{m.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {/* Map */}
+        <View style={styles.mapFrame}>
+          <SabahMap
+            mode={mapMode}
+            selectedDistrictId={selectedMapDistrict}
+            onSelectDistrict={(id) => {
+              setSelectedMapDistrict(id);
+              setSheetVisible(true);
+            }}
+            height={420}
+          />
+          <View style={styles.mapModeBadge}>
+            <Ionicons name={currentMode.icon as any} size={12} color="#FFFFFF" />
+            <Text style={styles.mapModeBadgeText}>{currentMode.label} view</Text>
+          </View>
+        </View>
+
+        {/* Legend */}
+        <View style={styles.legendCard}>
+          <Text style={styles.legendTitle}>{legend.label}</Text>
+          {legend.stops.length > 0 && (
+            <View style={styles.legendStops}>
+              {legend.stops.map((stop) => (
+                <View key={stop.label} style={styles.legendStop}>
+                  <View style={[styles.legendSwatch, { backgroundColor: stop.color }]} />
+                  <Text style={styles.legendStopText}>{stop.label}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+          <Text style={styles.legendFootnote}>Tap any district for details · 5 airports · 40+ offshore islands</Text>
+        </View>
+
+        <SabahMapSheet
+          visible={sheetVisible}
+          districtId={selectedMapDistrict}
+          mode={mapMode}
+          onClose={() => setSheetVisible(false)}
+        />
+      </Animated.View>
+    );
+  };
 
   const renderFoodMap = () => (
     <Animated.View entering={FadeInDown.duration(400)}>
@@ -448,6 +559,7 @@ export default function DiscoverScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {activeTab === 'Map' && renderSabahMap()}
         {activeTab === 'Food Map' && renderFoodMap()}
         {activeTab === 'Marketplace' && renderMarketplace()}
         {activeTab === 'Safety' && renderSafety()}
@@ -502,6 +614,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   chipScroll: { flexGrow: 0, marginBottom: Spacing.md, overflow: 'visible' },
+  mapModeChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  mapModeChipText: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodySemiBold, color: Colors.text },
+  mapFrame: { borderRadius: BorderRadius.xl, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border, marginBottom: Spacing.md, position: 'relative' },
+  mapModeBadge: { position: 'absolute', top: Spacing.md, left: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: Spacing.sm, paddingVertical: 5, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: BorderRadius.full, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  mapModeBadgeText: { fontSize: 10, fontFamily: Typography.fonts.bodySemiBold, color: '#FFFFFF', letterSpacing: 0.5 },
+  legendCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, borderWidth: 1, borderColor: Colors.border, padding: Spacing.base, marginBottom: Spacing.md },
+  legendTitle: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.heading, color: Colors.text, marginBottom: Spacing.sm },
+  legendStops: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginBottom: Spacing.sm },
+  legendStop: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  legendSwatch: { width: 12, height: 12, borderRadius: 3 },
+  legendStopText: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodyMedium, color: Colors.textSecondary },
+  legendFootnote: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: Colors.textTertiary, fontStyle: 'italic' },
   chip: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   chipText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodyMedium, color: Colors.textSecondary },

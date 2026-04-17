@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { Colors } from '@/constants/colors';
@@ -13,6 +14,8 @@ interface Notification {
   body: string;
   tint: string;
   emoji: string;
+  route: string;
+  cta: string;
 }
 
 const rotation: Notification[] = [
@@ -23,6 +26,8 @@ const rotation: Notification[] = [
     body: 'Optimal visibility until 3pm — best time for Sipadan diving',
     tint: Colors.ocean,
     emoji: '🌊',
+    route: '/(tabs)/home/destination/sipadan',
+    cta: 'View Sipadan',
   },
   {
     id: 'n2',
@@ -31,6 +36,8 @@ const rotation: Notification[] = [
     body: 'Kinabalu summit visible now. Next 2 days: 70% clear',
     tint: Colors.sunset,
     emoji: '☀️',
+    route: '/(tabs)/home/destination/kinabalu',
+    cta: 'Check Kinabalu',
   },
   {
     id: 'n3',
@@ -39,6 +46,8 @@ const rotation: Notification[] = [
     body: 'Sukau village reports herd 3km upstream right now',
     tint: Colors.secondary,
     emoji: '🐘',
+    route: '/(tabs)/home/destination/kinabatangan',
+    cta: 'View Kinabatangan',
   },
   {
     id: 'n4',
@@ -47,10 +56,13 @@ const rotation: Notification[] = [
     body: 'Last-minute openings for this weekend — 4 spots left',
     tint: Colors.error,
     emoji: '⚡',
+    route: '/(tabs)/home/destination/mabul',
+    cta: 'See deal',
   },
 ];
 
 export const LiveContextBanner: React.FC = () => {
+  const router = useRouter();
   const [index, setIndex] = useState(0);
   const [dismissed, setDismissed] = useState(false);
 
@@ -64,24 +76,39 @@ export const LiveContextBanner: React.FC = () => {
   if (dismissed) return null;
   const item = rotation[index];
 
+  const handlePress = () => {
+    router.push(item.route as any);
+  };
+
+  const handleDismiss = (e: any) => {
+    e.stopPropagation?.();
+    setDismissed(true);
+  };
+
   return (
     <Animated.View
       key={item.id}
       entering={FadeInUp.duration(400)}
       exiting={FadeOutUp.duration(300)}
-      style={[styles.wrap, { borderLeftColor: item.tint }]}
     >
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={handlePress}
+        style={[styles.wrap, { borderLeftColor: item.tint }]}
+      >
       <Text style={styles.emoji}>{item.emoji}</Text>
       <View style={{ flex: 1 }}>
         <View style={styles.headerRow}>
           <Text style={styles.appLabel}>BAYU · NOW</Text>
           <Text style={styles.liveDot}>●</Text>
+          <Text style={[styles.cta, { color: item.tint }]} numberOfLines={1}>· {item.cta} ›</Text>
         </View>
         <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
         <Text style={styles.body} numberOfLines={1}>{item.body}</Text>
       </View>
-      <TouchableOpacity onPress={() => setDismissed(true)} style={styles.dismiss}>
+      <TouchableOpacity onPress={handleDismiss} style={styles.dismiss}>
         <Ionicons name="close" size={14} color={Colors.textTertiary} />
+      </TouchableOpacity>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -109,6 +136,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   liveDot: { color: Colors.error, fontSize: 8 },
+  cta: { fontSize: 9, fontFamily: Typography.fonts.bodySemiBold, letterSpacing: 0.3, flex: 1 },
   title: {
     fontSize: Typography.sizes.sm,
     fontFamily: Typography.fonts.heading,

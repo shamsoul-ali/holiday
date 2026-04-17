@@ -24,14 +24,15 @@ const badgeStyles = StyleSheet.create({
   text: { color: '#fff', fontSize: 10, fontFamily: Typography.fonts.bodySemiBold },
 });
 
-const tabConfig: { name: string; icon: string; label: string }[] = [
-  { name: 'home', icon: 'home', label: 'Home' },
-  { name: 'explore', icon: 'compass', label: 'Explore' },
-  { name: 'ibayu', icon: 'chatbubble-ellipses', label: 'iBayu' },
-  { name: 'bookings', icon: 'briefcase', label: 'Bookings' },
-  { name: 'discover', icon: 'map', label: 'Discover' },
-  { name: 'profile', icon: 'person', label: 'Profile' },
-];
+// Note: iBayu is intentionally omitted from the tab bar — it's reachable
+// via the floating iBayu button. Route still exists under /ibayu.
+const tabConfig: Record<string, { icon: string; label: string }> = {
+  home: { icon: 'home', label: 'Home' },
+  explore: { icon: 'airplane', label: 'Plan' },
+  bookings: { icon: 'briefcase', label: 'Bookings' },
+  discover: { icon: 'map', label: 'Discover' },
+  profile: { icon: 'person', label: 'Profile' },
+};
 
 function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -45,9 +46,10 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           <BlurView intensity={80} tint="light" style={styles.blurView}>
             <View style={styles.tabBarInner}>
               {state.routes.map((route, index) => {
+              const config = tabConfig[route.name];
+              if (!config) return null; // Hide routes not in tabConfig (e.g. iBayu)
+
               const isFocused = state.index === index;
-              const config = tabConfig[index];
-              if (!config) return null;
 
               const onPress = () => {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
@@ -74,7 +76,7 @@ function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                 >
                   <View>
                     <Ionicons name={config.icon as any} size={22} color={color} />
-                    {config.name === 'bookings' && <TabBarBadge count={notificationCount} />}
+                    {route.name === 'bookings' && <TabBarBadge count={notificationCount} />}
                   </View>
                   <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]}>{config.label}</Text>
                 </TouchableOpacity>

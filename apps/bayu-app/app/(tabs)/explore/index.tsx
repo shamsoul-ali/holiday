@@ -12,7 +12,8 @@ import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { useTripStore, DEPARTURE_CITIES } from '@/store/tripStore';
 import { Button, Chip, ProgressBar, Card } from '@/components/ui';
 import { ScreenHeader } from '@/components/shared';
-import { sabahDestinations } from '@/data';
+import { sabahDestinations, destinationToDistrict } from '@/data';
+import { SabahMap } from '@/components/SabahMap';
 import { formatCurrency, formatDurationLabel } from '@/utils';
 import { TierType, DurationPreset } from '@/types';
 import { hapticSelection } from '@/utils';
@@ -78,6 +79,7 @@ export default function ExploreScreen() {
   const [showExactDates, setShowExactDates] = useState(false);
   const [customStartDate, setCustomStartDate] = useState<Date>(new Date(2026, 3, 15));
   const [showStartPicker, setShowStartPicker] = useState(Platform.OS === 'ios');
+  const [destPickerView, setDestPickerView] = useState<'list' | 'map'>('list');
 
   const customEndDate = useMemo(() => {
     const nights = durationToNights[wizard.duration] || 2;
@@ -275,12 +277,69 @@ export default function ExploreScreen() {
         );
 
       // Step 3: Where to? (was step 1, now with AI suggestion card at top)
-      case 3:
+      case 3: {
+        const highlightDistricts = Array.from(
+          new Set(Object.values(destinationToDistrict)),
+        );
         return (
           <Animated.View entering={FadeInRight.duration(300)} style={styles.stepContent}>
             <Text style={styles.stepTitle}>Where do you want to go?</Text>
             <Text style={styles.stepSubtitle}>Choose a destination for your trip</Text>
+
+            {/* List / Map toggle */}
+            <View style={styles.pickerToggle}>
+              {(['list', 'map'] as const).map((m) => (
+                <TouchableOpacity
+                  key={m}
+                  style={[styles.pickerToggleBtn, destPickerView === m && styles.pickerToggleBtnActive]}
+                  onPress={() => {
+                    hapticSelection();
+                    setDestPickerView(m);
+                  }}
+                >
+                  <Ionicons name={m === 'list' ? 'list' : 'map'} size={14} color={destPickerView === m ? '#FFFFFF' : Colors.primary} />
+                  <Text style={[styles.pickerToggleText, destPickerView === m && { color: '#FFFFFF' }]}>
+                    {m === 'list' ? 'List view' : 'Map view'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+              {destPickerView === 'map' && (
+                <View style={{ marginBottom: Spacing.base }}>
+                  <SabahMap
+                    mode="plain"
+                    highlightDistrictIds={highlightDistricts}
+                    selectedDistrictId={
+                      wizard.destination
+                        ? destinationToDistrict[sabahDestinations.find((d) => d.name === wizard.destination)?.id || '']
+                        : null
+                    }
+                    onSelectDistrict={(districtId) => {
+                      const entries = Object.entries(destinationToDistrict).filter(([, d]) => d === districtId);
+                      if (!entries.length) return;
+                      const firstDestId = entries[0][0];
+                      const dest = sabahDestinations.find((d) => d.id === firstDestId);
+                      if (dest) {
+                        hapticSelection();
+                        updateWizard({ destination: dest.name, useBayuSuggestion: false, suggestedReasons: [] });
+                      }
+                    }}
+                    height={380}
+                  />
+                  {wizard.destination && !wizard.useBayuSuggestion && (
+                    <View style={styles.mapSelectedChip}>
+                      <Ionicons name="checkmark-circle" size={16} color={Colors.primary} />
+                      <Text style={styles.mapSelectedText}>Selected: {wizard.destination}</Text>
+                    </View>
+                  )}
+                  <Text style={styles.mapHint}>Blue districts have destinations · tap to pick</Text>
+                </View>
+              )}
+
+              {destPickerView === 'list' && <>
+
               {/* AI Suggestion Card */}
               <TouchableOpacity
                 style={[styles.aiSuggestionCard, wizard.useBayuSuggestion && styles.aiSuggestionCardActive]}
@@ -399,9 +458,12 @@ export default function ExploreScreen() {
                   </View>
                 ));
               })()}
+
+              </>}
             </ScrollView>
           </Animated.View>
         );
+      }
 
       // Step 4: Interests & travel style (unchanged)
       case 4:
@@ -701,6 +763,13 @@ const styles = StyleSheet.create({
   reasonChipText: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.bodyMedium, color: Colors.primary },
   // Or divider
   orDivider: { flexDirection: 'row', alignItems: 'center', marginVertical: Spacing.md },
+  pickerToggle: { flexDirection: 'row', gap: Spacing.xs, marginBottom: Spacing.base, backgroundColor: Colors.surface, padding: 4, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border },
+  pickerToggleBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full },
+  pickerToggleBtnActive: { backgroundColor: Colors.primary },
+  pickerToggleText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodySemiBold, color: Colors.primary },
+  mapSelectedChip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: Spacing.sm, paddingVertical: Spacing.sm, backgroundColor: Colors.primary + '15', borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.primary + '40' },
+  mapSelectedText: { fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.bodySemiBold, color: Colors.primary },
+  mapHint: { fontSize: Typography.sizes.xs, fontFamily: Typography.fonts.body, color: Colors.textTertiary, textAlign: 'center', marginTop: Spacing.sm, fontStyle: 'italic' },
   orLine: { flex: 1, height: 1, backgroundColor: Colors.borderLight },
   orText: { marginHorizontal: Spacing.md, fontSize: Typography.sizes.sm, fontFamily: Typography.fonts.body, color: Colors.textTertiary },
   // Suggested badge in review

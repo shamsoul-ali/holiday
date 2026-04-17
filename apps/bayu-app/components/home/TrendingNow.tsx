@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +8,25 @@ import { Colors } from '@/constants/colors';
 import { Typography } from '@/constants/typography';
 import { Spacing, BorderRadius, Shadows } from '@/constants/spacing';
 import { LiveDot } from '@/components/gov/widgets';
+
+// Resolve free-text place/package names to a destination route
+function resolveRoute(text: string): string {
+  const t = text.toLowerCase();
+  if (t.includes('sipadan')) return '/(tabs)/home/destination/sipadan';
+  if (t.includes('mabul')) return '/(tabs)/home/destination/mabul';
+  if (t.includes('kapalai')) return '/(tabs)/home/destination/kapalai';
+  if (t.includes('kinabatangan') || t.includes('sandakan')) return '/(tabs)/home/destination/kinabatangan';
+  if (t.includes('sepilok')) return '/(tabs)/home/destination/sepilok';
+  if (t.includes('danum')) return '/(tabs)/home/destination/danum-valley';
+  if (t.includes('kundasang')) return '/(tabs)/home/destination/kundasang';
+  if (t.includes('poring')) return '/(tabs)/home/destination/poring';
+  if (t.includes('kinabalu') || t.includes('mt kinabalu') || t.includes('mount kinabalu')) return '/(tabs)/home/destination/kinabalu';
+  if (t.includes('tunku') || t.includes('tarp') || t.includes('marine park')) return '/(tabs)/home/destination/tar-park';
+  if (t.includes('semporna')) return '/(tabs)/home/destination/sipadan';
+  if (t.includes('kk ') || t.includes('kota kinabalu')) return '/(tabs)/home/destination/mari-mari';
+  if (t.includes('tip of borneo') || t.includes('kudat')) return '/(tabs)/home/destination/tip-of-borneo';
+  return '/(tabs)/discover';
+}
 
 type TrendingItem =
   | { type: 'booking'; flag: string; name: string; place: string; pkg: string; minsAgo: number }
@@ -59,7 +79,18 @@ function describe(item: TrendingItem): { emoji: string; text: string; highlight?
   }
 }
 
+function resolveItemRoute(item: TrendingItem): string {
+  switch (item.type) {
+    case 'booking': return resolveRoute(item.pkg);
+    case 'viewing': return resolveRoute(item.place);
+    case 'low-stock': return resolveRoute(item.pkg);
+    case 'surge': return resolveRoute(item.place);
+    case 'hot': return resolveRoute(item.pkg);
+  }
+}
+
 export const TrendingNow: React.FC = () => {
+  const router = useRouter();
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
@@ -71,35 +102,37 @@ export const TrendingNow: React.FC = () => {
   const d = describe(item);
 
   return (
-    <LinearGradient
-      colors={Colors.gradients.oceanDepth}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-      <View style={styles.livePill}>
-        <LiveDot color="#FF5A5F" size={7} />
-      </View>
+    <TouchableOpacity activeOpacity={0.88} onPress={() => router.push(resolveItemRoute(item) as any)}>
+      <LinearGradient
+        colors={Colors.gradients.oceanDepth}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.container}
+      >
+        <View style={styles.livePill}>
+          <LiveDot color="#FF5A5F" size={7} />
+        </View>
 
-      <View style={styles.messageWrap}>
-        <Animated.View
-          key={idx}
-          entering={FadeInDown.duration(420)}
-          exiting={FadeOutUp.duration(320)}
-          style={styles.messageRow}
-        >
-          <Text style={styles.emoji}>{d.emoji}</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.message} numberOfLines={2}>
-              {d.text}
-            </Text>
-            {d.highlight && <Text style={styles.highlight}>{d.highlight}</Text>}
-          </View>
-        </Animated.View>
-      </View>
+        <View style={styles.messageWrap}>
+          <Animated.View
+            key={idx}
+            entering={FadeInDown.duration(420)}
+            exiting={FadeOutUp.duration(320)}
+            style={styles.messageRow}
+          >
+            <Text style={styles.emoji}>{d.emoji}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.message} numberOfLines={2}>
+                {d.text}
+              </Text>
+              {d.highlight && <Text style={styles.highlight}>{d.highlight}</Text>}
+            </View>
+          </Animated.View>
+        </View>
 
-      <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.5)" />
-    </LinearGradient>
+        <Ionicons name="chevron-forward" size={16} color="rgba(255,255,255,0.7)" />
+      </LinearGradient>
+    </TouchableOpacity>
   );
 };
 
