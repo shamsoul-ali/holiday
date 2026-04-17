@@ -33,6 +33,7 @@ const PRIMARY: NavItem[] = [
   { href: '/bayu/sustainability',  label: 'Sustainability',  icon: Leaf, disabled: true },
   { href: '/bayu/live-feed',       label: 'Live Feed',       icon: Zap, badge: 'LIVE' },
   { href: '/bayu/reports',         label: 'Reports',         icon: FileText },
+  { href: '/bayu/sabah-map',       label: 'Sabah Map (debug)', icon: MapPin, badge: 'DEV' },
 ];
 
 export function Sidebar() {

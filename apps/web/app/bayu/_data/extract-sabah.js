@@ -60,9 +60,10 @@ function pathBBox(d) {
   return { minX, minY, maxX, maxY };
 }
 
-// Build polygon records: include #aaaaff (regular districts) AND #5555ff
-// (highlighted districts — these include Kota Kinabalu, Sandakan, Tawau which are
-// shaded darker on the source map to indicate major cities).
+// Build polygon records. Fills in this SVG:
+//   #aaaaff : regular district council (Majlis Daerah)
+//   #5555ff : municipal council (Majlis Perbandaran — Penampang, Sandakan, Tawau)
+//   #000055 : city council (Dewan Bandaraya Kota Kinabalu — only KK has this)
 function buildPolys(fill) {
   return allPaths
     .filter((p) => p.fill === fill)
@@ -84,8 +85,10 @@ function buildPolys(fill) {
     });
 }
 
-// All district polygons (regular + highlighted cities) into one list
-const districts = [...buildPolys('#aaaaff'), ...buildPolys('#5555ff')]
+// All district polygons (regular + municipal + city council) into one list.
+// #000055 paths are filtered by area > 500 to drop vectorised text fragments.
+const rawCityPolys = buildPolys('#000055').filter((p) => p.area > 500);
+const districts = [...buildPolys('#aaaaff'), ...buildPolys('#5555ff'), ...rawCityPolys]
   .sort((a, b) => b.area - a.area);
 
 // Small islands at the top of the map (#ffaaaa) → outlying northern islands

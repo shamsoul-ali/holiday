@@ -40,7 +40,7 @@ const AIRPORTS = [
   { code: 'SDK', name: 'Sandakan',             cx: 545, cy: 322, pax: '1.2M/yr',                 anchor: 'sandakan' },
   { code: 'TWU', name: 'Tawau',                cx: 486, cy: 560, pax: '1.0M/yr',                 anchor: 'tawau' },
   { code: 'LDU', name: 'Lahad Datu',           cx: 610, cy: 464, pax: '284k/yr',                 anchor: 'lahaddatu' },
-  { code: 'KUD', name: 'Kudat',                cx: 380, cy: 153, pax: 'domestic',                anchor: 'kudat' },
+  { code: 'KUD', name: 'Kudat',                cx: 320, cy: 125, pax: 'domestic',                anchor: 'kudat' },
 ];
 
 const ISLANDS = [
@@ -63,28 +63,43 @@ const GEO_TO_DISTRICT: Record<string, string> = {
   d2:  'nabawan',      // (281,523) large interior-S
   d3:  'lahaddatu',    // (616,466) large E-S
   d4:  'beluran',      // (423,269) large NE
-  d5:  'tawau',        // (486,563) large S coast — #5555ff highlighted
+  d5:  'tawau',        // (486,563) MP Tawau — #5555ff
   d6:  'ranau',        // (327,306) interior N (Mt Kinabalu foot)
   d7:  'keningau',     // (236,426) interior center
-  d8:  'sandakan',     // (543,326) E-center — #5555ff highlighted
-  d9:  'beaufort',     // (175,485) W-S
+  d8:  'sandakan',     // (543,326) MP Sandakan — #5555ff
+  d9:  'sipitang',     // (175,485) confirmed Sipitang
   d10: 'telupid',      // (393,325) E interior
-  d11: 'papar',        // (130,416) W coast south
+  d11: 'beaufort',     // (130,416) confirmed Beaufort
   d12: 'kotamarudu',   // (337,203) N
-  d13: 'kudat',        // (380,153) far N tip
+  d13: 'pitas',        // (380,153) N — confirmed Pitas
   d14: 'kotabelud',    // (271,224) NW coast
-  d15: 'penampang',    // (190,360) W coast, just S of KK
+  d15: 'papar',        // (190,360) confirmed Papar
   d16: 'kunak',        // (554,525) SE coast
   d17: 'tambunan',     // (256,343) interior
   d18: 'tuaran',       // (242,275) NW coast
   d19: 'semporna',     // (630,563) far SE
   d20: 'kualapenyu',   // ( 92,391) SW coast peninsula
-  d21: 'kk',           // (219,317) Kota Kinabalu — #5555ff highlighted
-  d22: 'tenom',        // (635,532) — small, re-using for tenom
-  d23: 'sipitang',     // (509,611) S coast — re-using
-  d24: 'pitas',        // (441,160) N
-  d25: 'putatan',      // (477,604) small S
+  d21: 'penampang',    // (219,317) MP Penampang — #5555ff
+  d22: 'kk',           // (217,284) Kota Kinabalu — #000055 (DBKK city council)
+  d23: 'tenom',        // (635,532) small E — re-using
+  d24: 'tawau',        // (509,611) secondary Tawau sub-polygon
+  d25: 'pitas',        // (441,160) secondary Pitas sub-polygon
+  d26: 'tawau',        // (477,604) tertiary Tawau sub-polygon
+  d29: 'semporna',     // (676,567) secondary Semporna sub-polygon
+  d30: 'beluran',      // (492,287) secondary Beluran sub-polygon
+  d31: 'sandakan',     // (542,327) secondary Sandakan sub-polygon
+  d32: 'putatan',      // confirmed Putatan
 };
+
+// All #ffaaaa highlight polygons represent Kudat (admin + Banggi island).
+// Rendered with Kudat's occupancy color so the north tip is coloured correctly.
+const HIGHLIGHTS_DISTRICT_ID = 'kudat';
+
+// Capital of Sabah — rendered with a distinct gold fill + crown marker.
+const CAPITAL_GEO_ID = 'd22';
+
+// Legend / decorative artifacts from the source SVG — skip rendering entirely.
+const SKIP_POLYGONS = new Set(['d27', 'd28', 'h4']);
 
 // Per-polygon label overrides when the bbox centroid sits on a neighbor.
 // KK is a very small polygon wedged between Tuaran (N) and Penampang (S),
@@ -100,10 +115,14 @@ function useDistrictsWithData() {
   return useMemo(() => {
     const byId: Record<string, typeof stats.hotels.districts[number]> = {};
     stats.hotels.districts.forEach((d) => (byId[d.id] = d));
-    return SABAH_DISTRICTS.map((geo) => ({
-      geo,
-      data: byId[GEO_TO_DISTRICT[geo.id]],
-    }));
+    const regular = SABAH_DISTRICTS
+      .filter((geo) => !SKIP_POLYGONS.has(geo.id))
+      .map((geo) => ({ geo, data: byId[GEO_TO_DISTRICT[geo.id]] }));
+    const kudatData = byId[HIGHLIGHTS_DISTRICT_ID];
+    const kudatPolys = SABAH_HIGHLIGHTS
+      .filter((geo) => !SKIP_POLYGONS.has(geo.id))
+      .map((geo) => ({ geo, data: kudatData }));
+    return [...regular, ...kudatPolys];
   }, []);
 }
 
@@ -161,38 +180,74 @@ export function SabahOccupancy() {
 
             {/* District polygons — apply the source translate */}
             <g transform={`translate(0, ${ty})`}>
-              {/* Outlying highlights (Labuan, border islands) */}
-              <g>
-                {SABAH_HIGHLIGHTS.map((p) => (
-                  <path key={p.id} d={p.d} fill="#1F3A5F" fillOpacity={0.55} stroke="#2A4F7D" strokeWidth={0.4} />
-                ))}
-              </g>
-
-              {/* Heat-colored district polygons */}
+              {/* Heat-colored district polygons (single unified loop — includes
+                  the Kudat highlight polygons at the northern tip) */}
               <g>
                 {paired.map((p, i) => {
                   const isActive = hoverId === p.geo.id;
+                  const isCapital = p.geo.id === CAPITAL_GEO_ID;
                   const occupancy = p.data?.occupancy ?? 58 + ((i * 7) % 25);
-                  const color = occupancyColor(occupancy);
+                  // Capital gets a dedicated gold fill regardless of occupancy so
+                  // it reads as "the capital" not as a heat-map color.
+                  const color = isCapital ? '#F7B731' : occupancyColor(occupancy);
                   return (
                     <motion.path
                       key={p.geo.id}
                       d={p.geo.d}
                       initial={{ opacity: 0 }}
-                      animate={{ opacity: isActive ? 1 : 0.9 }}
+                      animate={{ opacity: isActive ? 1 : 0.92 }}
                       transition={{ delay: i * 0.04, duration: 0.5 }}
                       fill={color}
-                      fillOpacity={p.data ? 0.88 : 0.5}
-                      stroke={isActive ? '#FFFFFF' : '#0B1A30'}
-                      strokeWidth={isActive ? 1.8 : 0.6}
+                      fillOpacity={isCapital ? 1 : p.data ? 0.88 : 0.5}
+                      stroke={isActive ? '#FFFFFF' : isCapital ? '#FFD97A' : '#0B1A30'}
+                      strokeWidth={isActive ? 1.8 : isCapital ? 1.4 : 0.6}
                       style={{ cursor: 'pointer' }}
-                      filter={occupancy >= 90 ? 'url(#hotGlow)' : undefined}
+                      filter={isCapital || occupancy >= 90 ? 'url(#hotGlow)' : undefined}
                       onMouseEnter={() => setHoverId(p.geo.id)}
                       onMouseLeave={() => setHoverId(null)}
                     />
                   );
                 })}
               </g>
+
+              {/* Capital crown marker (sits on top of the KK polygon) */}
+              {(() => {
+                const cap = paired.find((p) => p.geo.id === CAPITAL_GEO_ID);
+                if (!cap) return null;
+                const cx = cap.geo.cx;
+                const cy = cap.geo.cy - SABAH_CONTENT_TRANSLATE_Y - 4;
+                return (
+                  <g style={{ pointerEvents: 'none' }}>
+                    {/* Pulsing halo */}
+                    <circle cx={cx} cy={cy} r={8} fill="#F7B731" opacity={0.35}>
+                      <animate attributeName="r" from="6" to="14" dur="1.8s" repeatCount="indefinite" />
+                      <animate attributeName="opacity" from="0.5" to="0" dur="1.8s" repeatCount="indefinite" />
+                    </circle>
+                    {/* Gold star / crown glyph */}
+                    <text
+                      x={cx}
+                      y={cy + 3}
+                      textAnchor="middle"
+                      fontSize={14}
+                      fill="#FFD97A"
+                      style={{ paintOrder: 'stroke', stroke: '#002B7F', strokeWidth: 2.5 }}
+                    >
+                      ★
+                    </text>
+                    <text
+                      x={cx}
+                      y={cy + 18}
+                      textAnchor="middle"
+                      fontSize={7}
+                      fontWeight="800"
+                      fill="#FFD97A"
+                      style={{ paintOrder: 'stroke', stroke: '#002B7F', strokeWidth: 2.5, letterSpacing: 1.2 }}
+                    >
+                      CAPITAL
+                    </text>
+                  </g>
+                );
+              })()}
 
               {/* District name labels — skip anything anchored by an airport marker
                   or smaller than a floor so we don't pile text on tiny polygons. */}
@@ -311,12 +366,12 @@ export function SabahOccupancy() {
             </text>
           </svg>
 
-          {/* Active district popup */}
+          {/* Active district popup (top-left so it doesn't clash with legend) */}
           {active && active.data && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="absolute right-3 top-3 rounded-lg border border-bayu-line bg-bayu-bg0/95 p-3 text-xs backdrop-blur"
+              className="absolute left-3 top-3 rounded-lg border border-bayu-line bg-bayu-bg0/95 p-3 text-xs backdrop-blur"
             >
               <div className="text-[10px] font-semibold uppercase tracking-wider text-bayu-textDim">
                 District
@@ -334,8 +389,8 @@ export function SabahOccupancy() {
             </motion.div>
           )}
 
-          {/* Legend */}
-          <div className="pointer-events-none absolute bottom-3 left-3 flex flex-col gap-1 rounded-md border border-bayu-line bg-bayu-bg0/90 px-2 py-1.5 text-[9px] text-bayu-textMuted">
+          {/* Legend — top-right */}
+          <div className="pointer-events-none absolute top-3 right-3 flex flex-col gap-1 rounded-md border border-bayu-line bg-bayu-bg0/90 px-2 py-1.5 text-[9px] text-bayu-textMuted">
             <div className="flex items-center gap-2">
               <span>Low</span>
               <div className="flex h-2 w-20 overflow-hidden rounded">
