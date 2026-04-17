@@ -10,7 +10,22 @@ import {
   SABAH_DISTRICTS,
   SABAH_HIGHLIGHTS,
 } from '../../_data/sabah-geo';
+import { SIPITANG_PATH } from '../../_data/sipitang';
 import { stats } from '../../_data/stats';
+
+// Synthetic Sipitang placement — kept in sync with SabahOccupancy.tsx
+const SIPITANG_TRANSFORM = (() => {
+  const nativeMinX = 431;
+  const nativeMinY = 189;
+  const nativeW = 1243;
+  const targetTLX = 84;
+  const targetTLY = 82.5;
+  const targetW = 78;
+  const scale = targetW / nativeW;
+  const tx = targetTLX - nativeMinX * scale;
+  const ty = targetTLY - nativeMinY * scale;
+  return `translate(${tx.toFixed(3)}, ${ty.toFixed(3)}) scale(${scale})`;
+})();
 
 // Kept in sync with SabahOccupancy.tsx — update both if you change anything.
 const GEO_TO_DISTRICT: Record<string, string> = {
@@ -20,35 +35,37 @@ const GEO_TO_DISTRICT: Record<string, string> = {
   d3:  'lahaddatu',
   d4:  'beluran',
   d5:  'tawau',
-  d6:  'ranau',
-  d7:  'keningau',
-  d8:  'sandakan',
-  d9:  'sipitang',
-  d10: 'telupid',
-  d11: 'beaufort',
-  d12: 'kotamarudu',
-  d13: 'pitas',
-  d14: 'kotabelud',
-  d15: 'papar',
-  d16: 'kunak',
-  d17: 'tambunan',
-  d18: 'tuaran',
-  d19: 'semporna',
-  d20: 'kualapenyu',
-  d21: 'penampang',
-  d22: 'kk',
-  d23: 'tenom',
-  d24: 'tawau',
-  d25: 'pitas',
+  // d6 = Sarawak/Brunei, hidden
+  d7:  'ranau',
+  d8:  'keningau',
+  d9:  'sandakan',
+  d10: 'tenom',
+  d11: 'telupid',
+  d12: 'beaufort',
+  d13: 'kotamarudu',
+  d14: 'pitas',
+  d15: 'kotabelud',
+  d16: 'papar',
+  d17: 'kunak',
+  d18: 'tambunan',
+  d19: 'tuaran',
+  d20: 'sipitang',
+  d21: 'semporna',
+  d22: 'kualapenyu',
+  d23: 'penampang',
+  d24: 'kk',
+  d25: 'semporna',
   d26: 'tawau',
-  d29: 'semporna',
-  d30: 'beluran',
-  d31: 'sandakan',
-  d32: 'putatan',
+  d27: 'pitas',
+  d28: 'tawau',
+  d31: 'semporna',
+  d32: 'beluran',
+  d33: 'sandakan',
+  d34: 'putatan',
 };
 
-// Drop legend artifacts from the raw SVG
-const SKIP_POLYGONS = new Set(['d27', 'd28', 'h4']);
+// Drop legend artifacts from the raw SVG (and d20 which is replaced by sipitang.svg)
+const SKIP_POLYGONS = new Set(['d6', 'd20', 'd29', 'd30', 'h4']);
 
 export default function SabahMapDebugPage() {
   const [showRaw, setShowRaw] = useState(true);
@@ -144,6 +161,20 @@ export default function SabahMapDebugPage() {
                       );
                     })}
 
+                    {/* Synthetic Sipitang polygon (from sipitang.svg) */}
+                    <g transform={SIPITANG_TRANSFORM}>
+                      <path
+                        d={SIPITANG_PATH}
+                        fill={active === 'sipitang-synth' ? 'rgba(46,175,232,0.55)' : 'rgba(16,185,129,0.18)'}
+                        stroke={active === 'sipitang-synth' ? '#FFFFFF' : '#10B981'}
+                        strokeWidth={active === 'sipitang-synth' ? 30 : 16}
+                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={() => setHoverId('sipitang-synth')}
+                        onMouseLeave={() => setHoverId(null)}
+                        onClick={() => setSelectedId((s) => (s === 'sipitang-synth' ? null : 'sipitang-synth'))}
+                      />
+                    </g>
+
                     {/* Centroid dots */}
                     {showCentroids &&
                       rows.map((r) => {
@@ -201,11 +232,21 @@ export default function SabahMapDebugPage() {
                 </div>
 
                 {/* Active polygon card */}
-                {active && (
-                  <div className="absolute left-3 top-3 rounded-lg border border-bayu-line bg-bayu-bg0/95 p-3 text-xs backdrop-blur">
-                    <PolygonInfo row={rows.find((r) => r.geo.id === active)!} />
-                  </div>
-                )}
+                {active && (() => {
+                  const row = active === 'sipitang-synth'
+                    ? {
+                        geo: { id: 'sipitang-synth', cx: 115, cy: 528, area: 0 },
+                        mappedId: 'sipitang',
+                        data: districtsById['sipitang'],
+                      }
+                    : rows.find((r) => r.geo.id === active);
+                  if (!row) return null;
+                  return (
+                    <div className="absolute left-3 top-3 rounded-lg border border-bayu-line bg-bayu-bg0/95 p-3 text-xs backdrop-blur">
+                      <PolygonInfo row={row} />
+                    </div>
+                  );
+                })()}
               </div>
             </Section>
 
@@ -265,6 +306,89 @@ export default function SabahMapDebugPage() {
               </div>
             </Section>
           </div>
+
+          {/* SW Polygon Gallery — isolate each polygon so user can identify Sipitang */}
+          <Section
+            title="SW Polygon Gallery"
+            subtitle="Every polygon (mapped + skipped) with centroid cx < 260 and cy > 350. Click a card to pin. Red outline = unmapped."
+          >
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {[
+                ...SABAH_DISTRICTS.map((g) => ({
+                  geo: g,
+                  mappedId: GEO_TO_DISTRICT[g.id],
+                  data: GEO_TO_DISTRICT[g.id] ? districtsById[GEO_TO_DISTRICT[g.id]] : undefined,
+                  skipped: SKIP_POLYGONS.has(g.id),
+                })),
+                ...SABAH_HIGHLIGHTS.map((g) => ({
+                  geo: g,
+                  mappedId: 'kudat',
+                  data: districtsById['kudat'],
+                  skipped: SKIP_POLYGONS.has(g.id),
+                })),
+              ]
+                .filter((r) => r.geo.cx < 260 && r.geo.cy > 350)
+                .sort((a, b) => a.geo.cy - b.geo.cy || a.geo.cx - b.geo.cx)
+                .map((r) => {
+                  const isActive = active === r.geo.id;
+                  // Per-polygon bbox-fit viewBox so each shape fills the card
+                  // Use a generous pad around the polygon
+                  const polyCxRel = r.geo.cx;
+                  const polyCyRel = r.geo.cy - ty; // source y (without translate)
+                  // Rough bbox half-size from area (assuming near-square)
+                  const half = Math.max(40, Math.sqrt(r.geo.area) * 0.7);
+                  const vbx = polyCxRel - half;
+                  const vby = polyCyRel - half;
+                  const vbw = half * 2;
+                  const vbh = half * 2;
+                  const statusTag = r.skipped
+                    ? { label: 'SKIPPED', color: '#F5362F' }
+                    : r.mappedId
+                    ? { label: r.data?.name ?? r.mappedId, color: '#2EAFE8' }
+                    : { label: 'UNMAPPED', color: '#F7B731' };
+                  return (
+                    <button
+                      key={'gal-' + r.geo.id}
+                      onClick={() => setSelectedId((s) => (s === r.geo.id ? null : r.geo.id))}
+                      className={`flex flex-col overflow-hidden rounded-lg border transition ${
+                        isActive
+                          ? 'border-bayu-sky bg-bayu-ocean/15'
+                          : 'border-bayu-line bg-bayu-bg1 hover:border-bayu-line2 hover:bg-bayu-bg2/60'
+                      }`}
+                    >
+                      <div className="relative bg-bayu-bg0 aspect-square">
+                        <svg
+                          viewBox={`${vbx} ${vby} ${vbw} ${vbh}`}
+                          preserveAspectRatio="xMidYMid meet"
+                          className="w-full h-full"
+                        >
+                          <path
+                            d={r.geo.d}
+                            fill={statusTag.color + (r.skipped ? '55' : '88')}
+                            stroke={statusTag.color}
+                            strokeWidth={Math.max(0.6, vbw / 120)}
+                          />
+                          <circle cx={polyCxRel} cy={polyCyRel} r={Math.max(1.5, vbw / 80)} fill="#F7B731" stroke="#0B1A30" strokeWidth={0.5} />
+                        </svg>
+                      </div>
+                      <div className="p-2 text-left">
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-xs font-bold text-bayu-text">
+                            {r.geo.id}
+                          </span>
+                          <span className="text-[10px] font-semibold uppercase" style={{ color: statusTag.color }}>
+                            {statusTag.label}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 text-[9px] text-bayu-textDim">
+                          cx {r.geo.cx.toFixed(0)} · cy {r.geo.cy.toFixed(0)} · area {r.geo.area.toFixed(0)}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+          </Section>
 
           {/* Raw SVG in its own panel */}
           <Section

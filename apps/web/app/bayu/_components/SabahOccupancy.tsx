@@ -9,7 +9,9 @@ import {
   SABAH_CONTENT_TRANSLATE_Y,
   SABAH_DISTRICTS,
   SABAH_HIGHLIGHTS,
+  SABAH_MAINLAND,
 } from '../_data/sabah-geo';
+import { SIPITANG_PATH } from '../_data/sipitang';
 
 function mix(a: string, b: string, t: number) {
   const ha = a.replace('#', '');
@@ -64,31 +66,33 @@ const GEO_TO_DISTRICT: Record<string, string> = {
   d3:  'lahaddatu',    // (616,466) large E-S
   d4:  'beluran',      // (423,269) large NE
   d5:  'tawau',        // (486,563) MP Tawau — #5555ff
-  d6:  'ranau',        // (327,306) interior N (Mt Kinabalu foot)
-  d7:  'keningau',     // (236,426) interior center
-  d8:  'sandakan',     // (543,326) MP Sandakan — #5555ff
-  d9:  'sipitang',     // (175,485) confirmed Sipitang
-  d10: 'telupid',      // (393,325) E interior
-  d11: 'beaufort',     // (130,416) confirmed Beaufort
-  d12: 'kotamarudu',   // (337,203) N
-  d13: 'pitas',        // (380,153) N — confirmed Pitas
-  d14: 'kotabelud',    // (271,224) NW coast
-  d15: 'papar',        // (190,360) confirmed Papar
-  d16: 'kunak',        // (554,525) SE coast
-  d17: 'tambunan',     // (256,343) interior
-  d18: 'tuaran',       // (242,275) NW coast
-  d19: 'semporna',     // (630,563) far SE
-  d20: 'kualapenyu',   // ( 92,391) SW coast peninsula
-  d21: 'penampang',    // (219,317) MP Penampang — #5555ff
-  d22: 'kk',           // (217,284) Kota Kinabalu — #000055 (DBKK city council)
-  d23: 'tenom',        // (635,532) small E — re-using
-  d24: 'tawau',        // (509,611) secondary Tawau sub-polygon
-  d25: 'pitas',        // (441,160) secondary Pitas sub-polygon
-  d26: 'tawau',        // (477,604) tertiary Tawau sub-polygon
-  d29: 'semporna',     // (676,567) secondary Semporna sub-polygon
-  d30: 'beluran',      // (492,287) secondary Beluran sub-polygon
-  d31: 'sandakan',     // (542,327) secondary Sandakan sub-polygon
-  d32: 'putatan',      // confirmed Putatan
+  // d6 ( 60,553) — #b3b3b3 grey = Sarawak/Brunei (LEFT of red border), hidden
+  d7:  'ranau',        // (327,306) interior N (Mt Kinabalu foot)
+  d8:  'keningau',     // (236,426) interior center
+  d9:  'sandakan',     // (543,326) MP Sandakan — #5555ff
+  d10: 'tenom',        // (175,485) confirmed Tenom
+  d11: 'telupid',      // (393,325) E interior
+  d12: 'beaufort',     // (130,416) confirmed Beaufort
+  d13: 'kotamarudu',   // (337,203) N
+  d14: 'pitas',        // (380,153) N — confirmed Pitas
+  d15: 'kotabelud',    // (271,224) NW coast
+  d16: 'papar',        // (190,360) confirmed Papar
+  d17: 'kunak',        // (554,525) SE coast
+  d18: 'tambunan',     // (256,343) interior
+  d19: 'tuaran',       // (242,275) NW coast
+  d20: 'sipitang',     // (102,539) NEW — red-outline polygon between grey and Tenom
+  d21: 'semporna',     // (630,563) far SE
+  d22: 'kualapenyu',   // ( 92,391) SW coast peninsula
+  d23: 'penampang',    // (219,317) MP Penampang — #5555ff
+  d24: 'kk',           // (217,284) Kota Kinabalu — #000055 (DBKK city council)
+  d25: 'semporna',     // (635,532) secondary Semporna sub-polygon
+  d26: 'tawau',        // (509,611) secondary Tawau sub-polygon
+  d27: 'pitas',        // (441,160) secondary Pitas sub-polygon
+  d28: 'tawau',        // (477,604) tertiary Tawau sub-polygon
+  d31: 'semporna',     // (676,567) tertiary Semporna sub-polygon
+  d32: 'beluran',      // (492,287) secondary Beluran sub-polygon
+  d33: 'sandakan',     // (542,327) secondary Sandakan sub-polygon
+  d34: 'putatan',      // (191,312) confirmed Putatan
 };
 
 // All #ffaaaa highlight polygons represent Kudat (admin + Banggi island).
@@ -96,10 +100,13 @@ const GEO_TO_DISTRICT: Record<string, string> = {
 const HIGHLIGHTS_DISTRICT_ID = 'kudat';
 
 // Capital of Sabah — rendered with a distinct gold fill + crown marker.
-const CAPITAL_GEO_ID = 'd22';
+const CAPITAL_GEO_ID = 'd24';
 
 // Legend / decorative artifacts from the source SVG — skip rendering entirely.
-const SKIP_POLYGONS = new Set(['d27', 'd28', 'h4']);
+// d6 is the grey Sarawak/Brunei landmass (left of the red international border).
+// d20 is the old red-outline-only Sipitang — replaced by the dedicated
+// sipitang.svg synthetic polygon, so we skip the original outline.
+const SKIP_POLYGONS = new Set(['d6', 'd20', 'd29', 'd30', 'h4']);
 
 // Per-polygon label overrides when the bbox centroid sits on a neighbor.
 // KK is a very small polygon wedged between Tuaran (N) and Penampang (S),
@@ -126,12 +133,42 @@ function useDistrictsWithData() {
   }, []);
 }
 
+// Dedicated Sipitang polygon from sipitang.svg (not in the municipal SVG).
+// Native bbox: x 431-1675, y 189-3213 (1243 × 3024, aspect ~1:2.4).
+// Align so the polygon butts against Beaufort (north) and Tenom (west):
+//   - Beaufort (d12) source bbox: x 84-176, y 11-103 → south edge y ≈ 103
+//   - Tenom    (d10) source bbox: x 141-209, y 29-223 → west edge x ≈ 141
+// Target Sipitang bbox in SOURCE coords: top-left ≈ (85, 104), right edge 141,
+// extend south to the Sabah coast (y ≈ 245).
+const SIPITANG_TRANSFORM = (() => {
+  const nativeMinX = 431;
+  const nativeMinY = 189;
+  const nativeW = 1243;
+  const nativeH = 3024;
+  const targetTLX = 84;   // left edge anchored
+  const targetTLY = 82.5; // top anchored (butts Beaufort)
+  const targetW = 78;     // grows down+right (right edge ≈ 178, bottom ≈ 278)
+  const scaleX = targetW / nativeW;
+  const scaleY = (targetW * (nativeH / nativeW)); // keep aspect ratio
+  const scale = scaleX; // uniform
+  const tx = targetTLX - nativeMinX * scale;
+  const ty = targetTLY - nativeMinY * scale;
+  return `translate(${tx.toFixed(3)}, ${ty.toFixed(3)}) scale(${scale})`;
+})();
+
 export function SabahOccupancy() {
   const [hoverId, setHoverId] = useState<string | null>(null);
   const paired = useDistrictsWithData();
 
   const allDistricts = stats.hotels.districts;
-  const active = hoverId ? paired.find((p) => p.geo.id === hoverId) : null;
+  const active = hoverId
+    ? hoverId === 'sipitang-synth'
+      ? {
+          geo: { id: 'sipitang-synth', cx: 0, cy: 0, area: 0, d: '' },
+          data: stats.hotels.districts.find((d) => d.id === 'sipitang'),
+        }
+      : paired.find((p) => p.geo.id === hoverId)
+    : null;
   const avgOccupancy = Math.round(
     allDistricts.reduce((a, d) => a + d.occupancy * d.rooms, 0) /
       allDistricts.reduce((a, d) => a + d.rooms, 0),
@@ -180,6 +217,75 @@ export function SabahOccupancy() {
 
             {/* District polygons — apply the source translate */}
             <g transform={`translate(0, ${ty})`}>
+              {/* Mainland silhouette — fills Sabah's land area so undeclared
+                  regions (e.g. Sipitang gap between d20 and Tenom) still show
+                  as land, not ocean. Subtle dark tone. */}
+              <g>
+                {SABAH_MAINLAND.map((p) => (
+                  <path
+                    key={p.id}
+                    d={p.d}
+                    fill="#1A3053"
+                    fillOpacity={0.55}
+                    stroke="#12253F"
+                    strokeWidth={0.4}
+                  />
+                ))}
+              </g>
+
+              {/* Sipitang polygon (imported from dedicated sipitang.svg since the
+                  municipal source doesn't have a proper fillable Sipitang shape) */}
+              {(() => {
+                const sipData = stats.hotels.districts.find((d) => d.id === 'sipitang');
+                const sipColor = occupancyColor(sipData?.occupancy ?? 45);
+                const isSipHover = hoverId === 'sipitang-synth';
+                // Label at the polygon's visual center in source coords (after the
+                // SIPITANG_TRANSFORM is applied, the centroid lands near here).
+                const labelCx = 118;
+                const labelCy = 170;
+                return (
+                  <>
+                    <g transform={SIPITANG_TRANSFORM}>
+                      <path
+                        d={SIPITANG_PATH}
+                        fill={sipColor}
+                        fillOpacity={isSipHover ? 1 : 0.92}
+                        stroke={isSipHover ? '#FFFFFF' : '#0B1A30'}
+                        strokeWidth={isSipHover ? 25 : 8}
+                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={() => setHoverId('sipitang-synth')}
+                        onMouseLeave={() => setHoverId(null)}
+                      />
+                    </g>
+                    {/* Sipitang labels — same style as other districts */}
+                    <g style={{ pointerEvents: 'none' }}>
+                      <text
+                        x={labelCx}
+                        y={labelCy - 1}
+                        textAnchor="middle"
+                        fontSize={11}
+                        fontWeight="800"
+                        fill="#FFFFFF"
+                        style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.85)', strokeWidth: 2.2 }}
+                      >
+                        {sipData?.occupancy}%
+                      </text>
+                      <text
+                        x={labelCx}
+                        y={labelCy + 10}
+                        textAnchor="middle"
+                        fontSize={8}
+                        fontWeight="700"
+                        fill="#E6EEF7"
+                        style={{ paintOrder: 'stroke', stroke: 'rgba(0,0,0,0.85)', strokeWidth: 2 }}
+                      >
+                        {sipData?.name}
+                      </text>
+                    </g>
+                  </>
+                );
+              })()}
+
               {/* Heat-colored district polygons (single unified loop — includes
                   the Kudat highlight polygons at the northern tip) */}
               <g>

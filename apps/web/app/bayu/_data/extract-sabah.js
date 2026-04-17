@@ -24,7 +24,7 @@ while ((m = pathRe.exec(svg)) !== null) {
   const styleFill = full.match(/fill:([^;"]+)/);
   const attrFill = full.match(/\sfill="([^"]+)"/);
   const fill = styleFill ? styleFill[1].trim() : attrFill ? attrFill[1].trim() : null;
-  if (dM && fill) allPaths.push({ d: dM[1], fill, len: dM[1].length });
+  if (dM && fill) allPaths.push({ d: dM[1], fill, len: dM[1].length, full });
 }
 
 function pathBBox(d) {
@@ -85,11 +85,46 @@ function buildPolys(fill) {
     });
 }
 
-// All district polygons (regular + municipal + city council) into one list.
+// Some districts (e.g. Sipitang) are drawn as outline-only polygons:
+// fill: none with a coloured stroke. Match by stroke colour to pull them in.
+function buildOutlinePolys(strokeColor) {
+  return allPaths
+    .filter((p) => {
+      if (p.fill !== 'none') return false;
+      const strokeMatch = p.full.match(/stroke:([^;"]+)/);
+      return strokeMatch && strokeMatch[1].trim().toLowerCase() === strokeColor.toLowerCase();
+    })
+    .map((p) => {
+      const b = pathBBox(p.d);
+      return {
+        d: p.d, fill: 'none',
+        bbox: b,
+        cx: b ? (b.minX + b.maxX) / 2 : 0,
+        cy: b ? (b.minY + b.maxY) / 2 : 0,
+        area: b ? (b.maxX - b.minX) * (b.maxY - b.minY) : 0,
+      };
+    })
+    .filter((p) => {
+      if (!p.bbox) return false;
+      const y0 = p.bbox.minY + TRANSLATE_Y;
+      const y1 = p.bbox.maxY + TRANSLATE_Y;
+      return y1 > 0 && y0 < 655 && p.bbox.maxX > 0 && p.bbox.minX < 794 && p.area > 500;
+    });
+}
+
+// All district polygons (regular + municipal + city council + grey outliers +
+// red-stroke outline districts like Sipitang) into one list.
 // #000055 paths are filtered by area > 500 to drop vectorised text fragments.
 const rawCityPolys = buildPolys('#000055').filter((p) => p.area > 500);
-const districts = [...buildPolys('#aaaaff'), ...buildPolys('#5555ff'), ...rawCityPolys]
-  .sort((a, b) => b.area - a.area);
+const greyPolys = buildPolys('#b3b3b3').filter((p) => p.area > 500);
+const redOutlinePolys = buildOutlinePolys('#ff0000');
+const districts = [
+  ...buildPolys('#aaaaff'),
+  ...buildPolys('#5555ff'),
+  ...rawCityPolys,
+  ...greyPolys,
+  ...redOutlinePolys,
+].sort((a, b) => b.area - a.area);
 
 // Small islands at the top of the map (#ffaaaa) → outlying northern islands
 const highlights = allPaths
@@ -161,6 +196,12 @@ function emit(name, arr, prefix) {
 
 emit('SABAH_DISTRICTS', districts, 'd');
 emit('SABAH_HIGHLIGHTS', highlights, 'h');
+
+// Sabah mainland silhouette (biggest #808080 land path) as a subtle base layer
+const mainland = buildPolys('#808080')
+  .sort((a, b) => b.area - a.area)
+  .slice(0, 1);
+emit('SABAH_MAINLAND', mainland, 'l');
 
 const result = out.join('\n');
 fs.writeFileSync(OUT, result);
