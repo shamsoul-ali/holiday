@@ -1,0 +1,56 @@
+export const andalusiaData = {
+  company: {
+    name: 'Andalusia Travel & Tours Sdn Bhd',
+    established: 2004,
+    yearsOperating: 22,
+    totalJemaah: 51203,
+    headquarters: 'Kuala Lumpur, Malaysia',
+    awards: ['MATTA Award Best Travel Agency'],
+    partnerships: ['Malaysia Airlines', 'Hilton Suites', 'Pullman Zamzam'],
+  },
+  financials: {
+    currentAnnualRevenue: 222000000,
+    projectedGrowthRate: 0.35,
+    averageBookingValue: 8500,
+    monthlyActiveBookings: 3650,
+    customerAcquisitionCost: 150,
+    customerLifetimeValue: 25000,
+  },
+  market: {
+    totalMalaysianUmrahMarket: 500000,
+    marketShare: 0.10,
+    targetMarketShare: 0.20,
+    averageUmrahPrice: 8000,
+    growthDrivers: [
+      'Digital transformation of traditional agency',
+      'AI-powered personalization',
+      'Younger demographic (26-45) adoption',
+      'Premium segment expansion',
+    ],
+  },
+  packages: {
+    ekonomi: { price: 6367, margin: 0.15, volume: 8450 },
+    standard: { price: 7890, margin: 0.18, volume: 12300 },
+    premium: { price: 9450, margin: 0.22, volume: 5200 },
+    vip: { price: 11013, margin: 0.28, volume: 1800 },
+    plusIstanbul: { price: 11367, margin: 0.20, volume: 2100 },
+    plusDubai: { price: 10690, margin: 0.20, volume: 1500 },
+    haji: { price: 50000, margin: 0.12, volume: 850 },
+  },
+  demographics: {
+    gender: { female: 60, male: 40 },
+    income: { B40: 30, M40: 50, T20: 20 },
+    topStates: ['Selangor', 'Johor', 'Kuala Lumpur', 'Perak', 'Pulau Pinang'],
+  },
+  investment: {
+    askAmount: 3000000,
+    useOfFunds: [
+      { category: 'Technology Development', amount: 1200000, percentage: 40 },
+      { category: 'Marketing & Growth', amount: 750000, percentage: 25 },
+      { category: 'Operations & Hiring', amount: 600000, percentage: 20 },
+      { category: 'Working Capital', amount: 450000, percentage: 15 },
+    ],
+    projectedROI: 3.5,
+    breakEvenMonths: 18,
+  },
+};

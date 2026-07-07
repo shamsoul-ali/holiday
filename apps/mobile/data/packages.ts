@@ -1,0 +1,52 @@
+import { TripPackage } from '@/types';
+
+export const tokyoPackages: TripPackage[] = [
+  {
+    id: 'tokyo-budget',
+    tier: 'budget',
+    title: 'Tokyo Explorer',
+    destination: 'Tokyo, Japan',
+    duration: '5D4N',
+    price: 4250,
+    pricePerPerson: 2125,
+    currency: 'MYR',
+    rating: 4.5,
+    highlights: ['Public transport pass', 'Budget-friendly hostels', 'Street food tours', 'Free temple visits'],
+    inclusions: ['Return flights (Economy)', '4 nights hostel', 'Airport transfer', 'Travel insurance', '7-day metro pass'],
+    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400',
+    priceBreakdown: { flights: 1700, accommodation: 800, meals: 600, activities: 450, transport: 300, insurance: 200, taxes: 200, total: 4250 },
+  },
+  {
+    id: 'tokyo-comfort',
+    tier: 'comfort',
+    title: 'Tokyo Discovery',
+    destination: 'Tokyo, Japan',
+    duration: '5D4N',
+    price: 8500,
+    pricePerPerson: 4250,
+    currency: 'MYR',
+    rating: 4.8,
+    highlights: ['4-star hotel Shinjuku', 'Guided city tours', 'Halal dining curated', 'Bullet train experience'],
+    inclusions: ['Return flights (Economy)', '4 nights 4-star hotel', 'Airport transfer', 'Travel insurance', 'Guided tours x3', 'Halal meals plan'],
+    image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400',
+    isRecommended: true,
+    priceBreakdown: { flights: 3400, accommodation: 2100, meals: 1200, activities: 900, transport: 400, insurance: 300, taxes: 200, total: 8500 },
+  },
+  {
+    id: 'tokyo-luxury',
+    tier: 'luxury',
+    title: 'Tokyo Premium',
+    destination: 'Tokyo, Japan',
+    duration: '5D4N',
+    price: 18500,
+    pricePerPerson: 9250,
+    currency: 'MYR',
+    rating: 4.9,
+    highlights: ['5-star hotel Ginza', 'Private chauffeur', 'Michelin halal dining', 'Exclusive Mt. Fuji tour'],
+    inclusions: ['Return flights (Business)', '4 nights 5-star suite', 'Private chauffeur', 'Premium insurance', 'Private guided tours', 'Michelin dining x4'],
+    image: 'https://images.unsplash.com/photo-1480796927426-f609979314bd?w=400',
+    priceBreakdown: { flights: 7500, accommodation: 5200, meals: 2800, activities: 1500, transport: 800, insurance: 400, taxes: 300, total: 18500 },
+  },
+];
+
+export const allPackages = tokyoPackages;

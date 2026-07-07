@@ -1,0 +1,27 @@
+/* Bayu Command Center — theme tokens.
+   Values are "R G B" (space-separated) so Tailwind's <alpha-value> works.
+   Light mode is the default; adding .dark on an ancestor flips to dark. */
+
+.bayu-root {
+  --bayu-bg0:        250 250 250;   /* page bg          */
+  --bayu-bg1:        255 255 255;   /* card bg          */
+  --bayu-bg2:        244 244 245;   /* subtle panel     */
+  --bayu-bg3:        237 237 239;   /* stronger panel   */
+  --bayu-line:       228 228 231;   /* subtle border    */
+  --bayu-line2:      212 212 216;   /* stronger border  */
+  --bayu-text:        23  23  23;   /* primary text     */
+  --bayu-text-muted:  82  82  91;   /* secondary text   */
+  --bayu-text-dim:   161 161 170;   /* tertiary text    */
+}
+
+.bayu-root.dark {
+  --bayu-bg0:          7  15  30;
+  --bayu-bg1:         11  26  48;
+  --bayu-bg2:         18  37  63;
+  --bayu-bg3:         26  48  83;
+  --bayu-line:        31  58  95;
+  --bayu-line2:       42  79 125;
+  --bayu-text:       230 238 247;
+  --bayu-text-muted: 143 163 184;
+  --bayu-text-dim:    90 115 148;
+}

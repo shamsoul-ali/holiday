@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Holiday AI",
+    "slug": "holiday-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "holidayai",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#059669"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.holidayai.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#059669"
+      },
+      "package": "com.holidayai.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-image"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "d75090bc-b325-4b84-86db-06188d253bfb"
+      }
+    },
+    "owner": "zemang86"
+  }
+}

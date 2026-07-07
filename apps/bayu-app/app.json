@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Bayu",
+    "slug": "bayu-app",
+    "version": "1.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "bayuapp",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "imageResizeMode": "contain",
+      "backgroundColor": "#096DBB"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bayuai.sabah",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#096DBB"
+      },
+      "package": "com.bayuai.sabah"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-image",
+      "@react-native-community/datetimepicker"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "9abcae1c-3ce6-4c6a-b5c7-0cef4fc5399a"
+      }
+    },
+    "owner": "zemang86"
+  }
+}

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Holiday AI Planner is an AI-first travel platform built as a monorepo with separate frontend (Next.js) and backend (FastAPI) services. The platform generates personalized travel itineraries by integrating with 25+ travel APIs, AI services, and payment providers. It supports B2C travel planning, B2B agent tools, and specialized Umrah/halal travel features.
+Holiday AI Planner is an AI-first travel platform built as a monorepo with a web frontend (Next.js), Python backend (FastAPI), and native mobile app (Expo/React Native). The platform generates personalized travel itineraries by integrating with 25+ travel APIs, AI services, and payment providers. It supports B2C travel planning, B2B agent tools, and specialized Umrah/halal travel features.
 
 ### 🚨 CRITICAL: Project Status & Security
 
@@ -41,13 +41,15 @@ When working on this project, always consult PROJECT_STATUS.md first to understa
 Holiday AI Planner/
 ├── apps/
 │   ├── web/          # Next.js 14 frontend (App Router)
+│   ├── mobile/       # Expo React Native app (iOS + Android)
 │   └── api/          # FastAPI Python backend
 ├── packages/         # (Future: shared packages)
 └── infra/           # Docker, database configs
 ```
 
 ### Tech Stack
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui, Radix UI, Framer Motion
+- **Web Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui, Radix UI, Framer Motion
+- **Mobile App**: Expo SDK 55, Expo Router v4, React Native, TypeScript, Zustand v5, React Native Reanimated v4, Moti
 - **Backend**: FastAPI, Python 3.11, SQLAlchemy, Alembic
 - **Database**: PostgreSQL 15 + pgvector (for AI embeddings)
 - **Cache**: Redis (with intelligent TTL strategies per data type)
@@ -95,6 +97,21 @@ alembic revision --autogenerate -m "Description"
 alembic upgrade head
 ```
 
+### Mobile App (apps/mobile)
+```bash
+cd apps/mobile
+npx expo start           # Dev server (Expo Go or dev client)
+npx expo start --ios     # Launch iOS simulator
+npx expo start --android # Launch Android emulator
+npx tsc --noEmit         # TypeScript type checking
+
+# EAS Build (requires eas-cli)
+npx eas build --profile development --platform ios    # Dev build (simulator)
+npx eas build --profile preview --platform ios        # Internal distribution
+npx eas build --profile preview --platform android    # APK for testing
+npx eas build --profile production                    # Store submission
+```
+
 ### Testing
 ```bash
 npm test                 # All tests
@@ -121,6 +138,38 @@ npm run test:api         # Backend tests
 **API Communication**: Centralized in `/apps/web/lib/api-config.ts` with axios instances
 
 **UI Components**: shadcn/ui (Radix primitives) in `/apps/web/components/ui/`
+
+### Mobile Architecture
+
+**Purpose**: Demo/pitch app for investors. Pure simulation with mock data — zero API calls, no backend dependency.
+
+**Routing**: Expo Router v4 file-based routing in `apps/mobile/app/`:
+- `index.tsx` - Redirect logic (onboarding -> auth -> tabs)
+- `onboarding/index.tsx` - 3-slide intro with parallax
+- `(auth)/login.tsx, register.tsx` - Mock auth (pre-filled demo credentials)
+- `(tabs)/` - 5-tab bottom nav: Home | Explore | Bookings | Halal | Profile
+
+**State Management**: Zustand v5 stores in `apps/mobile/store/`:
+- `authStore` - Login state, onboarding flag
+- `tripStore` - 4-step wizard, AI generation simulation (rotating messages), package selection
+- `bookingStore` - Bookings, wallet (MYR), payment processing (2s simulated delay)
+- `halalStore` - Prayer times, halal restaurants, Umrah packages
+- `appStore` - Theme, notifications, first-launch
+
+**Design System** (`apps/mobile/constants/`):
+- Primary: `#059669` (green), Secondary: `#d97706` (gold), Accent: `#0ea5e9` (blue)
+- Fonts: Poppins (headings) + Inter (body) via @expo-google-fonts
+- 3 tiers: Budget (`#10B981`), Comfort (`#3B82F6`), Luxury (`#D97706`)
+
+**Mock Data** (`apps/mobile/data/`): Destinations, categories, packages (3-tier Tokyo), itineraries (5-day), bookings, halal info, Malaysian banks (FPX), e-wallets, user profile. All MYR currency.
+
+**UI Components** (`apps/mobile/components/ui/`): Button, Card, Input, Badge, Chip, Skeleton, GlassCard, StarRating, ProgressBar
+
+**Demo Flow**: Onboarding -> Login -> Home -> Plan Trip (4-step wizard) -> AI Loading -> 3-tier Results -> Itinerary Timeline -> Review + Add-ons -> Payment (FPX/Card/E-Wallet/BNPL) -> Confetti Success -> My Bookings
+
+**EAS Config**: Bundle ID `com.holidayai.app`, EAS project ID `d75090bc-b325-4b84-86db-06188d253bfb`, profiles: development (simulator), preview (internal), production (store)
+
+**TestFlight**: https://testflight.apple.com/join/HpxejJa9
 
 ### Backend Architecture
 
@@ -209,7 +258,8 @@ See `env.example` and run `curl http://localhost:8000/api/system/env-template` f
 
 ## Service Ports
 
-- **Frontend**: http://localhost:3010
+- **Web Frontend**: http://localhost:3010
+- **Mobile (Expo)**: http://localhost:8081 (Metro bundler)
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs (Swagger UI)
 - **PostgreSQL**: localhost:5432
@@ -217,7 +267,18 @@ See `env.example` and run `curl http://localhost:8000/api/system/env-template` f
 
 ## Recent Progress
 
-### ✅ Latest Updates (February 2026)
+### ✅ Latest Updates (March 2026)
+
+**Expo Mobile App (apps/mobile)**:
+- Built complete demo/pitch mobile app with 72 source files (~25k lines)
+- 5-tab navigation: Home, Explore (AI trip wizard), Bookings, Halal Hub, Profile
+- Full mock data layer — no backend dependency, all simulated
+- Malaysian payment methods: FPX (8 banks), e-wallets (TnG/Boost/GrabPay/ShopeePay), BNPL
+- Halal features: prayer times with countdown, JAKIM-certified restaurants, Umrah packages
+- EAS project linked (ID: d75090bc-b325-4b84-86db-06188d253bfb)
+- Tested on iOS simulator (iPhone 17 Pro Max), 2035 modules bundled successfully
+
+### Previous Updates (February 2026)
 
 **API Status Dashboard & Data Source Transparency**:
 - Created comprehensive API Status Dashboard (`/api-dashboard`) showing real-time health of all API providers
@@ -260,6 +321,13 @@ See `env.example` and run `curl http://localhost:8000/api/system/env-template` f
 - Alembic NOT configured (SQL migrations exist but no tooling)
 - Some endpoints use mock data (agents dashboard, Umrah packages, Top-10)
 - NO tests written (pytest configured but unused)
+
+**Mobile:**
+- Pure demo app — all mock data, no real backend integration
+- No tests written
+- Placeholder app icon (needs proper design asset)
+- No push notifications configured
+- No deep linking configured
 
 **Infrastructure:**
 - 🚨 CRITICAL: API keys exposed in docker-compose.yml
@@ -332,3 +400,19 @@ See `env.example` and run `curl http://localhost:8000/api/system/env-template` f
 2. Use `await cache_service.get(key)` before expensive operation
 3. Use `await cache_service.set(key, data, ttl)` to cache result
 4. Set appropriate TTL based on data type (see caching strategy above)
+
+**Add new mobile screen**:
+1. Add file to `apps/mobile/app/{tab}/{screen}.tsx`
+2. Use `ScreenHeader` component for consistent headers
+3. Use design tokens from `constants/` (Colors, Typography, Spacing)
+4. Add mock data to `apps/mobile/data/` if needed
+5. Wire state through appropriate Zustand store in `apps/mobile/store/`
+
+### Mobile Development Notes
+
+- **Reanimated v4**: Does NOT need `react-native-reanimated/plugin` in babel.config.js (removed for v4 compatibility)
+- **Static app.json**: EAS CLI requires static `app.json` (not dynamic `app.config.ts`) for `eas init` and project linking
+- **Google Fonts**: Install with `--legacy-peer-deps` flag due to peer dependency conflicts
+- **Expo Go testing**: App runs in Expo Go for development. For sharing with others, use `eas build --profile preview` for internal distribution (TestFlight-like)
+- **Dependencies**: Use `npx expo install <package>` to auto-resolve SDK-compatible versions instead of `npm install`
+- **Path alias**: `@/*` maps to project root (configured in tsconfig.json)
